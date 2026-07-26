@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#061019">
+  <meta name="description" content="全球锌产业监测台：价格、矿端、冶炼、需求、库存、平衡表与企业产量。">
+  <title>锌息相关｜全球锌产业监测台</title>
+  <link rel="icon" href="./assets/zn-insight.svg" type="image/svg+xml">
+  <link rel="manifest" href="./site.webmanifest">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./zinc-overrides.css">
+</head>
+<body>
+  <div class="chapter-rail" aria-hidden="true"><span>CHAPTER</span><strong>01</strong><em>OVERVIEW</em></div>
+  <div class="night-sky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="rhine-hud" aria-hidden="true">
+    <div class="rhine-header">
+      <div class="rhine-brand"><i class="rhine-brand-mark"></i><div><h2>RHINE_LAB // ECO_PROJECT</h2><p>PROJECT: Z.N.01 // ACCESS: GRANTED</p></div></div>
+      <div class="rhine-quote"><p>“看见库存的河道，才看得见价格的水位。”</p><strong>STERILE_ROOM_NO: 306</strong></div>
+    </div>
+  </div>
+
+  <div class="auth-gate" id="auth-gate">
+    <div class="auth-panel" id="auth-panel">
+      <div class="eyebrow">ZINC INTELLIGENCE · PRIVATE ACCESS</div>
+      <h2>锌息相关</h2>
+      <p>全球锌产业监测台</p>
+      <div class="auth-status" id="auth-status" aria-hidden="true">
+        <span data-auth-step="0"><i></i>IDENTITY</span>
+        <span data-auth-step="1"><i></i>DATA LINK</span>
+        <span data-auth-step="2"><i></i>INTERFACE</span>
+      </div>
+      <form class="auth-form" id="auth-form">
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="请输入访问口令" autofocus>
+        <button id="auth-submit" type="submit">进入</button>
+      </form>
+      <div class="auth-progress" aria-hidden="true"><i></i></div>
+      <div class="auth-error" id="auth-error"></div>
+      <div class="auth-note">访问状态仅保留在当前浏览器会话。</div>
+    </div>
+  </div>
+
+  <div class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">ZINC INTELLIGENCE · LIVE DASHBOARD · UI/02</div>
+        <h1>锌息相关</h1>
+        <div class="subtitle">全球锌产业监测台｜价格、矿端、冶炼、需求、库存、平衡与企业财报一屏联动。直集优先，Excel 与 StoneX 补齐。</div>
+        <div class="system-deck" aria-label="系统状态">
+          <span><b>01</b>DATA-FIRST</span>
+          <span><b>02</b>LIVE / DAILY</span>
+          <span><b>03</b><em id="hero-theme" style="font-style:normal">AUTO THEME</em></span>
+          <span><b>04</b>ZINC TERMINAL</span>
+        </div>
+      </div>
+      <div class="stamp">
+        <div class="theme-switcher" aria-label="昼夜自动阅读风格">
+          <span class="theme-status"><i></i><b id="theme-mode-label">AUTO THEME</b><small id="theme-clock">06:00 / 18:00 自动切换</small></span>
+        </div>
+        <b>锌版 · 数据构建</b><span id="build-date">连接中</span><br>
+        永安期货研究中心有色组 · 沈轶天
+      </div>
+    </header>
+
+    <nav class="nav" id="nav" role="tablist" aria-label="锌产业监测章节">
+      <button class="active" data-tab="overview">总览</button>
+      <button data-tab="price">价格</button>
+      <button data-tab="mine">矿端</button>
+      <button data-tab="smelting">冶炼</button>
+      <button data-tab="demand">需求</button>
+      <button data-tab="inventory">库存</button>
+      <button data-tab="balance">平衡表</button>
+      <button data-tab="companies">企业</button>
+      <button data-tab="intelligence">情绪 & 技术</button>
+      <span class="nav-progress" aria-hidden="true"><i></i></span>
+    </nav>
+
+    <main>
+      <section class="section active" id="overview">
+        <div class="section-head"><div><h2>市场总览</h2><p>最新价格、库存、加工费与下游开工</p></div><span class="tag warn" id="live-status">数据连接中</span></div>
+        <div class="kpis" id="overview-kpis"></div>
+        <div class="grid">
+          <div class="card"><h3>沪锌价格季节性</h3><div class="meta">元/吨 · 直集日K优先 / 锭篇回退</div><div class="chart"><canvas id="overview-price"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 直集 · LME日度结算</div><div class="chart"><canvas id="overview-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>全球交易所显性库存</h3><div class="meta">万吨 · SHFE + LME · 最新可得值</div><div class="chart"><canvas id="overview-stocks"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>StoneX 2026 核心判断</h3><div class="meta">千吨 · Zinc Monthly Update · 2026年5月版</div><div class="kpis mini-kpis" id="forecast-kpis"></div></div>
+        </div>
+        <div class="callout" id="overview-callout"></div>
+      </section>
+
+      <section class="section" id="price">
+        <div class="section-head"><div><h2>价格与结构</h2><p>内外盘、地区升贴水与期现信号</p></div><span class="tag ok">价格 / 升贴水 / K线</span></div>
+        <div class="kpis" id="price-kpis"></div>
+        <div class="grid">
+          <div class="card"><h3>沪锌价格季节性</h3><div class="meta">元/吨 · 2022—2026</div><div class="chart"><canvas id="price-shfe"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 2022—2026</div><div class="chart"><canvas id="price-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>三地现货升贴水</h3><div class="meta">元/吨 · 上海直集优先；广东/天津来自锭篇缓存</div><div class="chart"><canvas id="price-premium"></canvas><div class="empty">暂无数据</div></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="mine">
+        <div class="section-head"><div><h2>矿端</h2><p>国内矿产量、进口矿、TC与海外项目</p></div><span class="tag warn">金属量与实物吨分列</span></div>
+        <div class="kpis" id="mine-kpis"></div>
+        <div class="grid">
+          <div class="card"><h3>国内锌精矿产量</h3><div class="meta">万吨金属量 · 直集月度季节性</div><div class="chart"><canvas id="mine-output"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · 直集周度季节性</div><div class="chart"><canvas id="mine-port-stock"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>国产与进口锌精矿 TC</h3><div class="meta">国产：元/金属吨；进口：美元/干吨 · 双轴</div><div class="chart"><canvas id="mine-tc"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>国内月度矿端供应与冶炼需求</h3><div class="meta">万吨金属量 · 锭篇平衡 + 直集续接</div><div class="chart"><canvas id="mine-balance-chart"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>海外主要矿山新增及恢复产能</h3><div class="meta">万金属吨 · 锭篇“海外新开工”</div><div class="table-wrap"><table><thead><tr><th>国家</th><th>项目 / 公司</th><th>阶段</th><th class="num">2024</th><th class="num">2025E</th><th class="num">2026E</th><th>备注</th></tr></thead><tbody id="projects-body"></tbody></table></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="smelting">
+        <div class="section-head"><div><h2>冶炼</h2><p>精炼锌产量、加工费与利润模型</p></div><span class="tag ok">直集高频 + Excel 成本模型</span></div>
+        <div class="kpis" id="smelting-kpis"></div>
+        <div class="grid">
+          <div class="card"><h3>中国精炼锌产量</h3><div class="meta">万吨 · 直集月度季节性</div><div class="chart"><canvas id="smelting-output"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>精炼锌进出口</h3><div class="meta">万吨 · 中国海关 · 直集月度</div><div class="chart"><canvas id="smelting-trade"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>国产 / 进口矿冶炼利润模型</h3><div class="meta">元/吨 · 锭篇“利润”缓存值；模型口径，不等同企业真实利润</div><div class="chart"><canvas id="smelting-profit"></canvas><div class="empty">暂无数据</div></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="demand">
+        <div class="section-head"><div><h2>需求</h2><p>镀锌、氧化锌、压铸合金与宏观订单</p></div><span class="tag ok">开工率优先直集</span></div>
+        <div class="kpis" id="demand-kpis"></div>
+        <div class="grid">
+          <div class="card wide"><h3>锌下游开工率</h3><div class="meta">百分比 · 镀锌周度 / 氧化锌月度 / 锌合金月度</div><div class="chart"><canvas id="demand-rates"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>镀锌板卷库存</h3><div class="meta">万吨 · 社库与钢厂厂内库存</div><div class="chart"><canvas id="demand-inventory"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>制造业订单景气</h3><div class="meta">PMI · 中国新订单 / 美国ISM制造业</div><div class="chart"><canvas id="demand-pmi"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>StoneX 全球精炼锌消费</h3><div class="meta">千吨 · 2022—2028E · 主要国家与地区</div><div class="chart"><canvas id="demand-global"></canvas><div class="empty">暂无数据</div></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="inventory">
+        <div class="section-head"><div><h2>库存</h2><p>交易所、国内现货与矿端港口库存</p></div><span class="tag ok">直集最新至可得交易日</span></div>
+        <div class="kpis" id="inventory-kpis"></div>
+        <div class="grid">
+          <div class="card"><h3>SHFE 锌库存</h3><div class="meta">吨 · 日度季节性</div><div class="chart"><canvas id="inventory-shfe"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 锌库存</h3><div class="meta">吨 · 日度季节性</div><div class="chart"><canvas id="inventory-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>国内锌锭现货库存</h3><div class="meta">万吨 · 直集日度季节性</div><div class="chart"><canvas id="inventory-social"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · 直集周度季节性</div><div class="chart"><canvas id="inventory-port"></canvas><div class="empty">暂无数据</div></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="balance">
+        <div class="section-head"><div><h2>平衡表</h2><p>国内月度平衡与全球年度 / 季度预测</p></div><span class="tag warn">实绩、倒算与预测严格分层</span></div>
+        <div class="grid">
+          <div class="card"><h3>国内矿端月度平衡</h3><div class="meta">万吨金属量 · 总供应 / 冶炼需求 / 月差</div><div class="chart"><canvas id="balance-mine"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>国内锌锭月度供需</h3><div class="meta">万吨 · 总供应 / 表观消费 / 社库变化</div><div class="chart"><canvas id="balance-refined"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>最新月度明细</h3><div class="meta">锌锭表观消费为库存调整残差；2026续接段的缺项会在口径列标注</div><div class="table-wrap"><table><thead><tr><th>月份</th><th class="num">矿供应</th><th class="num">矿耗</th><th class="num">矿差</th><th class="num">锭产量</th><th class="num">净进口</th><th class="num">锭供应</th><th class="num">表观消费</th><th class="num">社库变化</th><th>口径</th></tr></thead><tbody id="balance-body"></tbody></table></div></div>
+          <div class="card"><h3>StoneX 全球年度平衡</h3><div class="meta">千吨 · 2025—2028E</div><div class="chart"><canvas id="balance-global"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>StoneX 全球季度锌锭平衡</h3><div class="meta">千吨 · 供应 / 消费 / 平衡</div><div class="chart"><canvas id="balance-quarterly"></canvas><div class="empty">暂无数据</div></div></div>
+        </div>
+        <div class="callout"><b>口径提醒：</b>矿端平衡中的进口矿按 45% 折金属量；锭端表观消费由供应扣除库存变化倒算。StoneX 为 2026 年 5 月预测版本，与国内高频不混算。</div>
+      </section>
+
+      <section class="section" id="companies">
+        <div class="section-head"><div><h2>全球企业</h2><p>锌矿、冶炼、资本开支与披露日历</p></div><span class="tag ok">最新企业表 · 含26Q2</span></div>
+        <div class="grid">
+          <div class="card wide"><h3>锌矿企业季度产量</h3><div class="meta">万金属吨 · 全球锌企季度产量梳理.xlsx</div><div class="table-wrap company-table"><table><thead id="mine-company-head"></thead><tbody id="mine-company-body"></tbody></table></div></div>
+          <div class="card wide"><h3>锌锭冶炼企业季度产量</h3><div class="meta">万吨精炼锌 · 全球锌企季度产量梳理.xlsx</div><div class="table-wrap company-table"><table><thead id="smelter-company-head"></thead><tbody id="smelter-company-body"></tbody></table></div></div>
+          <div class="card wide"><h3>资本开支与口径</h3><div class="meta">币种各异，严禁横向直接相加</div><div class="table-wrap"><table><thead id="capex-head"></thead><tbody id="capex-body"></tbody></table></div></div>
+          <div class="card"><h3>下一批披露节点</h3><div class="timeline" id="calendar-list"></div></div>
+          <div class="card"><h3>最近更新日志</h3><div class="timeline" id="update-log"></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="intelligence">
+        <div class="section-head"><div><h2>市场情绪与技术</h2><p>日K结构、均线、RSI与数据链路状态</p></div><span class="tag warn" id="intelligence-status">技术数据连接中</span></div>
+        <div class="grid">
+          <div class="card wide"><h3>沪锌主连日K</h3><div class="meta" id="technical-meta">直集日K · MA5 / MA20 / MA60 / MA120</div><div class="kline-wrap"><canvas id="kline-canvas"></canvas></div></div>
+          <div class="card wide"><h3>四框架技术读数</h3><div class="tech-grid" id="tech-grid"></div></div>
+          <div class="card wide"><h3>数据源注册表</h3><div class="meta">每个直集指标保留 ID、单位、频率、组织与截止日</div><div class="table-wrap"><table><thead><tr><th>模块</th><th>指标 ID</th><th>名称</th><th>单位</th><th>频率</th><th>最新</th><th>状态</th></tr></thead><tbody id="source-body"></tbody></table></div></div>
+          <div class="card wide"><h3>本地源文件</h3><div class="file-grid" id="source-files"></div></div>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>锌息相关 · ZINC INTELLIGENCE</span><span>仅供研究，不构成投资建议。预测、倒算值与不同币种资本开支均已分口径标注。</span></footer>
+  </div>
+
+  <script src="./vendor/chart.umd.min.js"></script>
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

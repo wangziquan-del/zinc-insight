@@ -1,0 +1,16 @@
+{
+  "name": "锌息相关｜全球锌产业监测台",
+  "short_name": "锌息相关",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#061019",
+  "theme_color": "#061019",
+  "icons": [
+    {
+      "src": "./assets/zn-insight.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

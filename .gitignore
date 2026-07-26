@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.openai/
+.wrangler/
+node_modules/
+zinc-dashboard-*.png
