@@ -976,6 +976,10 @@ def build_data() -> dict[str, Any]:
         {"module": "企业", "metric": "矿企 / 冶炼厂产量、指引、Capex", "importance": "高", "frequency": "季", "view": "同比 / 环比 / 指引差", "reason": "验证供给叙事是否在财报端兑现"},
     ]
 
+    policy_events = json.loads(
+        (ROOT / "data" / "policy_events.json").read_text(encoding="utf-8")
+    )
+
     output = {
         "meta": {
             "title": "锌语新愿",
@@ -1014,6 +1018,7 @@ def build_data() -> dict[str, Any]:
         },
         "cycleSignals": cycle_signals,
         "researchFramework": research_framework,
+        "policyEvents": policy_events,
         "companies": local["companies"],
         "projects": local["projects"],
         "sourceRegistry": api_meta,
@@ -1081,10 +1086,15 @@ def main() -> int:
     parser.add_argument(
         "--skip-reference-assets",
         action="store_true",
-        help="Do not re-extract CSS and Chart.js from the tin dashboard.",
+        help="Deprecated compatibility flag; custom assets are preserved by default.",
+    )
+    parser.add_argument(
+        "--refresh-reference-assets",
+        action="store_true",
+        help="Explicitly re-extract CSS and Chart.js from the tin dashboard.",
     )
     args = parser.parse_args()
-    if not args.skip_reference_assets:
+    if args.refresh_reference_assets and not args.skip_reference_assets:
         extract_reference_assets()
     data = build_data()
     write_data(data)

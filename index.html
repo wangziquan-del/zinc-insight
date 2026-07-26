@@ -73,6 +73,7 @@
       <button data-tab="inventory">库存</button>
       <button data-tab="balance">平衡表</button>
       <button data-tab="companies">企业</button>
+      <button data-tab="policy">政策事件</button>
       <button data-tab="intelligence">情绪 & 技术</button>
       <span class="nav-progress" aria-hidden="true"><i></i></span>
     </nav>
@@ -183,12 +184,17 @@
         </div>
       </section>
 
+      <section class="section" id="policy">
+        <div class="section-head"><div><h2>政策与事件</h2><p>中国铅锌产业政策、标准变化与宏观事件；官方来源优先，保留原文核验</p></div><span class="tag ok" id="policy-status">官方政策快照</span></div>
+        <div class="news-grid policy-grid" id="policy-grid"></div>
+        <div class="official-monitor"><b>跟踪原则</b><span>标准、环保、产能与贸易政策单独标记；事件影响是研究判断，不把标题自动等同于价格方向。</span></div>
+      </section>
       <section class="section" id="intelligence">
-        <div class="section-head"><div><h2>市场情绪与技术</h2><p>日K结构、均线、RSI与数据链路状态</p></div><span class="tag warn" id="intelligence-status">技术数据连接中</span></div>
+        <div class="section-head"><div><h2>市场情绪与技术</h2><p>日K结构、均线、RSI，以及小红书 / 抖音 MCP 的真实搜索结果</p></div><span class="tag warn" id="intelligence-status">技术数据连接中</span></div>
         <div class="grid">
           <div class="card wide"><h3>沪锌主连日K</h3><div class="meta" id="technical-meta">直集日K · MA5 / MA20 / MA60 / MA120</div><div class="kline-wrap"><canvas id="kline-canvas"></canvas></div></div>
           <div class="card wide"><h3>四框架技术读数</h3><div class="tech-grid" id="tech-grid"></div></div>
-          <div class="card wide"><h3>数据源注册表</h3><div class="meta">每个直集指标保留 ID、单位、频率、组织与截止日</div><div class="table-wrap"><table><thead><tr><th>模块</th><th>指标 ID</th><th>名称</th><th>单位</th><th>频率</th><th>最新</th><th>状态</th></tr></thead><tbody id="source-body"></tbody></table></div></div>
+          <div class="card wide"><div class="social-head"><div><h3>小红书 / 抖音 · “沪锌”搜索</h3><div class="meta">远程 xhs-douyin MCP · 只展示真实返回内容；互动热度不是多空结论</div></div><span class="tag warn" id="social-status">MCP 连接中</span></div><div class="news-grid social-grid" id="social-grid"><article class="news social-empty"><h3>等待远程 MCP 返回</h3><p>若鉴权或平台风控异常，将保留明确错误状态，不生成模拟帖子。</p></article></div></div>          <div class="card wide"><h3>数据源注册表</h3><div class="meta">每个直集指标保留 ID、单位、频率、组织与截止日</div><div class="table-wrap"><table><thead><tr><th>模块</th><th>指标 ID</th><th>名称</th><th>单位</th><th>频率</th><th>最新</th><th>状态</th></tr></thead><tbody id="source-body"></tbody></table></div></div>
           <div class="card wide"><h3>本地源文件</h3><div class="file-grid" id="source-files"></div></div>
         </div>
       </section>

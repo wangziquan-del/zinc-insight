@@ -2,6 +2,7 @@
   "use strict";
 
   const DATA = window.ZINC_DATA || {};
+  const LIVE_API_HOST = "https://tin-insight-api.wangziquan-tin.workers.dev";
   const charts = [];
   const nav = document.getElementById("nav");
   const navButtons = nav ? [...nav.querySelectorAll("button[data-tab]")] : [];
@@ -484,6 +485,77 @@
     if (log) log.innerHTML = rows.map(row => `<article><time>${escapeHtml(row[0])}</time><div><b>${escapeHtml(String(row[1] || "").slice(0, 38))}</b><p>${escapeHtml(String(row[2] || "官方财报 / 数据源"))}</p></div></article>`).join("");
   }
 
+  function safeExternalUrl(value) {
+    try {
+      const url = new URL(String(value || ""));
+      return /^(https?:)$/.test(url.protocol) ? url.href : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function policySection() {
+    const items = DATA.policyEvents || [];
+    const grid = document.getElementById("policy-grid");
+    if (grid) grid.innerHTML = items.map(item => {
+      const url = safeExternalUrl(item.url);
+      return `<article class="news">
+        <span class="news-category">${escapeHtml(item.category || "政策 / 事件")}</span>
+        <div class="date">${escapeHtml(item.date || "—")}</div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.summary)}</p>
+        <span class="news-source">${escapeHtml(item.source || "公开来源")}${item.official ? " · 官方源" : " · 聚合源"}</span>
+        ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">查看原文核验 →</a>` : ""}
+      </article>`;
+    }).join("");
+    const status = document.getElementById("policy-status");
+    if (status) {
+      status.textContent = `官方政策快照 · ${items.length} 条`;
+      status.className = `tag ${items.length ? "ok" : "warn"}`;
+    }
+  }
+
+  function renderSocial(items) {
+    const grid = document.getElementById("social-grid");
+    if (!grid) return;
+    grid.innerHTML = items.map(item => {
+      const url = safeExternalUrl(item.url);
+      const heat = Math.max(0, Math.min(100, number(item.heat) || 0));
+      return `<article class="news social-item">
+        <span class="news-category">${escapeHtml(item.platform || "社交平台")} · ${escapeHtml(item.tone || "分歧")}</span>
+        <div class="date">${escapeHtml(item.date || "—")}</div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.author || "未知作者")} · 赞 ${fmt(item.likes, 0)} · 评 ${fmt(item.comments, 0)}</p>
+        <div class="heat" title="互动热度代理"><i style="width:${heat}%"></i></div>
+        ${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">打开真实内容 →</a>` : ""}
+      </article>`;
+    }).join("");
+  }
+
+  async function refreshSocialIntelligence() {
+    const status = document.getElementById("social-status");
+    try {
+      const response = await fetch(`${LIVE_API_HOST}/api/social?commodity=zinc&t=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      if (payload.keyword !== "沪锌") throw new Error("keyword mismatch");
+      const items = Array.isArray(payload.items) ? payload.items : [];
+      if (!items.length) throw new Error("empty social payload");
+      renderSocial(items);
+      const sources = Object.values(payload.sources || {});
+      const ok = sources.filter(source => source.ok).length;
+      if (status) {
+        status.textContent = `真实结果 ${items.length} 条 · ${ok}/${sources.length} 渠道`;
+        status.className = `tag ${ok ? "ok" : "warn"}`;
+      }
+    } catch (error) {
+      if (status) {
+        status.textContent = "远程 MCP 暂不可用 · 未生成模拟结果";
+        status.className = "tag warn";
+        status.title = String(error && error.message || error);
+      }
+    }
+  }
   function ema(values, period) {
     if (!values.length) return [];
     const factor = 2 / (period + 1);
@@ -712,7 +784,9 @@
     inventorySection();
     balanceSection();
     companiesSection();
+    policySection();
     intelligenceSection();
+    refreshSocialIntelligence();
     navButtons.forEach(button => button.addEventListener("click", () => activateSection(button)));
     const requested = location.hash.replace("#", "");
     activateSection(navButtons.find(button => button.dataset.tab === requested) || navButtons[0], false);

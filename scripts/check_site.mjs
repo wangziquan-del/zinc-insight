@@ -5,7 +5,7 @@ const html=read('index.html'),dataText=read('data.json'),fail=[];
 const ok=(v,m)=>{if(!v)fail.push(m)};
 ok(html.includes('<meta charset="utf-8">'),'missing UTF-8');
 ok(html.includes('class="nav" id="nav"'),'missing nav class');
-for(const id of ['overview','framework','price','mine','smelting','demand','inventory','balance','companies','intelligence'])ok(html.includes(`id="${id}"`),`missing ${id}`);
+for(const id of ['overview','framework','price','mine','smelting','demand','inventory','balance','companies','policy','intelligence'])ok(html.includes(`id="${id}"`),`missing ${id}`);
 const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);ok(ids.filter((x,i)=>ids.indexOf(x)!==i).length===0,'duplicate ids');
 ok(!/\b(?:NaN|Infinity|-Infinity)\b/.test(dataText),'non-finite data');
 let data;try{data=JSON.parse(dataText)}catch(e){fail.push(`invalid data.json: ${e.message}`)}
@@ -14,6 +14,7 @@ if(data){
   ok(Object.keys(data.charts||{}).length>=22,'charts < 22');ok((data.kline?.candles||[]).length>=60,'K line < 60');
   for(const chart of ['monthSpread','concentrateImport','refinedNetImport','galvanizedRateSeasonal','zincOxideRateSeasonal','dieCastRateSeasonal','galvanizedInventorySeasonal'])ok((data.charts?.[chart]?.datasets||[]).some(x=>(x.data||[]).some(v=>v!=null)),`${chart} empty`);
   ok((data.researchFramework||[]).length>=16,'research framework incomplete');ok((data.cycleSignals||[]).length===4,'cycle signals != 4');
+  ok((data.policyEvents||[]).length>=4,'policy events incomplete');ok(html.includes('id="policy-grid"'),'policy grid missing');ok(html.includes('id="social-grid"'),'social grid missing');
   ok((data.stonex?.forecast?.rows||[]).length>=10,'StoneX forecast empty');ok((data.stonex?.consumption?.rows||[]).length>=40,'StoneX consumption empty');
   ok((data.companies?.mine?.rows||[]).length>=20,'mine companies < 20');ok((data.companies?.smelter?.rows||[]).length>=10,'smelters < 10');ok(data.quote?.last>0,'quote missing');
 }
