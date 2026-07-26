@@ -849,7 +849,7 @@ def build_data() -> dict[str, Any]:
 
     output = {
         "meta": {
-            "title": "锌息相关",
+            "title": "锌语新愿",
             "subtitle": "全球锌产业监测台",
             "builtAt": datetime.now().astimezone().isoformat(timespec="seconds"),
             "dataPriority": "直集 API > 最新 Excel 缓存值 > StoneX 2026年5月预测",

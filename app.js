@@ -97,12 +97,12 @@
     const next = change != null && change >= 3 ? "surge" : change != null && change <= -3 ? "crash" : "";
     if (!next) {
       delete document.body.dataset.marketMode;
-      document.title = "锌息相关｜全球锌产业监测台";
+      document.title = "锌语新愿｜全球锌产业监测台";
       updateThemeClock();
       return;
     }
     document.body.dataset.marketMode = next;
-    document.title = next === "surge" ? "长夜临光 // 锌息相关" : "绿野幻梦 // 锌息相关";
+    document.title = next === "surge" ? "长夜临光 // 锌语新愿" : "绿野幻梦 // 锌语新愿";
     applyTheme(next === "surge" ? "market-surge" : "market-crash");
   }
 
