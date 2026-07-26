@@ -224,6 +224,17 @@
     if (quote.changePct != null) updateMarketMode(quote.changePct);
   }
 
+  function frameworkSection() {
+    const grid = document.getElementById("cycle-signal-grid");
+    if (grid) grid.innerHTML = (DATA.cycleSignals || []).map(item => `<article class="tech-card ${escapeHtml(item.tone || "neutral")}">
+      <h3>${escapeHtml(item.name)}<span class="score">${escapeHtml(item.state)}</span></h3>
+      <p>${escapeHtml(item.detail)}</p></article>`).join("");
+    const body = document.getElementById("framework-body");
+    if (body) body.innerHTML = (DATA.researchFramework || []).map(item => `<tr>
+      <td>${escapeHtml(item.module)}</td><td><b>${escapeHtml(item.metric)}</b></td>
+      <td><span class="tag ${item.importance === "核心" ? "warn" : "ok"}">${escapeHtml(item.importance)}</span></td>
+      <td>${escapeHtml(item.frequency)}</td><td>${escapeHtml(item.view)}</td><td>${escapeHtml(item.reason)}</td></tr>`).join("");
+  }
   function priceSection() {
     const latest = DATA.latest || {};
     const quote = DATA.quote || {};
@@ -235,6 +246,7 @@
     ]);
     seasonal("price-shfe", (DATA.charts || {}).shfePrice);
     seasonal("price-lme", (DATA.charts || {}).lmePrice);
+    seasonal("price-spread", (DATA.charts || {}).monthSpread);
     continuous("price-premium", (DATA.charts || {}).premium, {
       scales: { y: { title: { display: true, text: "元/吨" } } }
     });
@@ -249,6 +261,7 @@
       ["进口 TC", `${fmt(pair(latest.tcImport)[1], 1)} 美元/干吨`, pair(latest.tcImport)[0]]
     ]);
     seasonal("mine-output", (DATA.charts || {}).concentrateOutput);
+    seasonal("mine-import", (DATA.charts || {}).concentrateImport);
     seasonal("mine-port-stock", (DATA.charts || {}).concentratePortStock);
     const tc = JSON.parse(JSON.stringify((DATA.charts || {}).tc || { labels: [], datasets: [] }));
     (tc.datasets || []).forEach(dataset => { if (/进口/.test(dataset.label)) dataset.yAxisID = "y1"; });
@@ -278,6 +291,7 @@
       ["南方国产 TC", `${fmt(pair(latest.tcSouth)[1], 0)} 元/金属吨`, pair(latest.tcSouth)[0]]
     ]);
     seasonal("smelting-output", (DATA.charts || {}).refinedOutput);
+    seasonal("smelting-net-import", (DATA.charts || {}).refinedNetImport);
     continuous("smelting-trade", (DATA.charts || {}).refinedTrade, {
       scales: { y: { title: { display: true, text: "万吨" } } }
     });
@@ -294,9 +308,13 @@
       ["锌合金开工率", `${fmt(pair(latest.dieCastRate)[1], 1)}%`, pair(latest.dieCastRate)[0]],
       ["StoneX 2026消费", `${fmt(metricValue((DATA.forecastSummary || {}).consumption, 2026), 0)} kt`, "全球精炼锌"]
     ]);
+    seasonal("demand-galvanized-rate", (DATA.charts || {}).galvanizedRateSeasonal);
+    seasonal("demand-oxide-rate", (DATA.charts || {}).zincOxideRateSeasonal);
+    seasonal("demand-diecast-rate", (DATA.charts || {}).dieCastRateSeasonal);
     continuous("demand-rates", (DATA.charts || {}).downstreamRates, {
       scales: { y: { suggestedMin: 0, suggestedMax: 100, title: { display: true, text: "%" } } }
     });
+    seasonal("demand-inventory-seasonal", (DATA.charts || {}).galvanizedInventorySeasonal);
     continuous("demand-inventory", (DATA.charts || {}).galvanizedInventory, {
       scales: { y: { title: { display: true, text: "万吨" } } }
     });
@@ -686,6 +704,7 @@
     updateThemeClock();
     setInterval(() => updateThemeClock(), 60_000);
     overview();
+    frameworkSection();
     priceSection();
     mineSection();
     smeltingSection();

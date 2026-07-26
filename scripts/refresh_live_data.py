@@ -47,6 +47,7 @@ def main():
         "socialStock": "social_stock", "concentratePortStock": "concentrate_port_stock",
         "tcImport": "tc_import", "tcNorth": "tc_north", "tcSouth": "tc_south",
         "refinedOutput": "refined_output", "concentrateOutput": "concentrate_output",
+        "oreImport": "concentrate_import",
         "galvanizedRate": "galvanized_rate", "zincOxideRate": "zinc_oxide_rate",
         "dieCastRate": "die_cast_rate", "shanghaiPremium": "shanghai_premium",
     }
@@ -61,7 +62,11 @@ def main():
         "lmePrice": "lme_price", "refinedOutput": "refined_output",
         "concentrateOutput": "concentrate_output", "shfeStock": "shfe_stock",
         "lmeStock": "lme_stock", "socialStock": "social_stock",
-        "concentratePortStock": "concentrate_port_stock",
+        "concentratePortStock": "concentrate_port_stock", "concentrateImport": "concentrate_import",
+        "galvanizedRateSeasonal": "galvanized_rate",
+        "zincOxideRateSeasonal": "zinc_oxide_rate",
+        "dieCastRateSeasonal": "die_cast_rate",
+        "galvanizedInventorySeasonal": "galvanized_inventory",
     }
     for chart, source in seasonal.items():
         if series.get(source):
@@ -78,11 +83,47 @@ def main():
         payload = {label: series.get(source, []) for label, source in mapping.items()}
         if any(payload.values()):
             charts[chart] = z.continuous_chart(payload, limit=limit)
+    refined_net_import = z.monthly_difference(
+        series.get("refined_import", []), series.get("refined_export", []), scale=0.0001
+    )
+    if refined_net_import:
+        latest["refinedNetImport"] = z.series_latest(refined_net_import)
+        charts["refinedNetImport"] = z.seasonal_chart(refined_net_import)
     if series.get("refined_import") or series.get("refined_export"):
         charts["refinedTrade"] = z.continuous_chart({
             "进口": [[day, value / 10000] for day, value in series.get("refined_import", [])],
             "出口": [[day, value / 10000] for day, value in series.get("refined_export", [])],
         }, limit=None)
+
+    previous_signals = {item.get("name"): item for item in data.get("cycleSignals", [])}
+    tc_value = z.series_latest(series.get("tc_import", []))[1]
+    galvanized_value = z.series_latest(series.get("galvanized_rate", []))[1]
+    oxide_value = z.series_latest(series.get("zinc_oxide_rate", []))[1]
+    die_cast_value = z.series_latest(series.get("die_cast_rate", []))[1]
+    social_percentile = z.calendar_month_percentile(series.get("social_stock", []))
+    data["cycleSignals"] = [
+        {
+            "name": "矿端",
+            "state": "极紧" if tc_value is not None and tc_value < 0 else "偏紧" if tc_value is not None and tc_value < 50 else "宽松",
+            "detail": f"进口 TC {tc_value:,.1f} 美元/干吨" if tc_value is not None else "TC 暂无有效值",
+            "tone": "down" if tc_value is not None and tc_value < 0 else "neutral",
+        },
+        previous_signals.get("冶炼", {
+            "name": "冶炼", "state": "待确认", "detail": "利润模型暂无有效值", "tone": "neutral",
+        }),
+        {
+            "name": "需求",
+            "state": "镀锌偏强、其他分化" if galvanized_value is not None and galvanized_value >= 80 else "需求偏弱",
+            "detail": f"镀锌 {galvanized_value or 0:.1f}% / 氧化锌 {oxide_value or 0:.1f}% / 合金 {die_cast_value or 0:.1f}%",
+            "tone": "up" if galvanized_value is not None and galvanized_value >= 80 else "down",
+        },
+        {
+            "name": "库存",
+            "state": "季节性高位" if social_percentile is not None and social_percentile >= 75 else "季节性低位" if social_percentile is not None and social_percentile <= 25 else "季节性中位",
+            "detail": f"国内现货库存处于历史同月 {social_percentile:.0f}% 分位" if social_percentile is not None else "历史同月分位待补",
+            "tone": "down" if social_percentile is not None and social_percentile >= 75 else "up" if social_percentile is not None and social_percentile <= 25 else "neutral",
+        },
+    ]
 
     z.write_data(data)
     print(json.dumps({"liveRefreshedAt": now,

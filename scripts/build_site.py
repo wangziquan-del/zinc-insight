@@ -46,6 +46,7 @@ INDICATORS = {
     "tc_south": "ID00408212",
     "refined_output": "ID01510883",
     "concentrate_output": "ID01001563",
+    "concentrate_import": "a10001843",
     "galvanized_rate": "ID00366835",
     "zinc_oxide_rate": "ID01002075",
     "die_cast_rate": "ID01002076",
@@ -123,11 +124,17 @@ def seasonal_chart(series: list[list[Any]], years: int = 5) -> dict[str, Any]:
     if not series:
         return {"labels": [], "datasets": []}
     available = sorted({int(item[0][:4]) for item in series if item[0] >= "2021-01-01"})[-years:]
-    labels = sorted({item[0][5:] for item in series if int(item[0][:4]) in available})
+    yearly_counts = {
+        year: sum(1 for item in series if int(item[0][:4]) == year)
+        for year in available
+    }
+    monthly = bool(yearly_counts) and max(yearly_counts.values()) <= 15
+    label_for = (lambda day: day[5:7]) if monthly else (lambda day: day[5:])
+    labels = sorted({label_for(item[0]) for item in series if int(item[0][:4]) in available})
     datasets = []
     maximum = max(available)
     for index, year in enumerate(available):
-        values = {item[0][5:]: item[1] for item in series if int(item[0][:4]) == year}
+        values = {label_for(item[0]): item[1] for item in series if int(item[0][:4]) == year}
         color = COLORS[index % len(COLORS)]
         datasets.append(
             {
@@ -139,6 +146,60 @@ def seasonal_chart(series: list[list[Any]], years: int = 5) -> dict[str, Any]:
             }
         )
     return {"labels": labels, "datasets": datasets}
+
+
+def read_seasonal_matrix(
+    worksheet,
+    *,
+    header_row: int,
+    date_col: int,
+    first_year_col: int,
+    last_year_col: int,
+) -> list[list[Any]]:
+    years: dict[int, int] = {}
+    for column in range(first_year_col, last_year_col + 1):
+        match = re.search(r"(20\d{2})", str(worksheet.cell(header_row, column).value or ""))
+        if match:
+            years[column] = int(match.group(1))
+    points: dict[str, float] = {}
+    for row in range(header_row + 1, worksheet.max_row + 1):
+        month_day = str(worksheet.cell(row, date_col).value or "").strip()
+        if not re.fullmatch(r"\d{2}-\d{2}", month_day):
+            continue
+        for column, year in years.items():
+            value = number(worksheet.cell(row, column).value)
+            if value is None:
+                continue
+            day = iso_date(f"{year}-{month_day}")
+            if day:
+                points[day] = value
+    return [[day, clean_number(value)] for day, value in sorted(points.items())]
+
+
+def monthly_difference(
+    left: list[list[Any]], right: list[list[Any]], scale: float = 1.0
+) -> list[list[Any]]:
+    left_monthly = month_end(left)
+    right_monthly = month_end(right)
+    return [
+        [f"{month}-01", clean_number((left_monthly[month] - right_monthly[month]) * scale)]
+        for month in sorted(set(left_monthly) & set(right_monthly))
+    ]
+
+
+def calendar_month_percentile(series: list[list[Any]]) -> float | None:
+    if not series:
+        return None
+    latest_day, latest_value = series[-1]
+    latest_year, latest_month = int(latest_day[:4]), latest_day[5:7]
+    peers = [
+        value
+        for day, value in series
+        if int(day[:4]) < latest_year and day[5:7] == latest_month
+    ]
+    if not peers:
+        return None
+    return clean_number(sum(value <= latest_value for value in peers) / len(peers) * 100, 1)
 
 
 def continuous_chart(
@@ -400,6 +461,9 @@ def read_excel_sources() -> tuple[dict[str, Any], list[dict[str, Any]]]:
 
     local: dict[str, Any] = {
         "price": extract_xy(ingot_values["沪锌价格"], 1, 2, min_row=3),
+        "month_spread": read_seasonal_matrix(
+            ingot_values["月差"], header_row=5, date_col=1, first_year_col=2, last_year_col=8
+        ),
         "premium_shanghai": extract_xy(ingot_values["升贴水数据"], 11, 12),
         "premium_guangdong": extract_xy(ingot_values["升贴水数据"], 11, 13),
         "premium_tianjin": extract_xy(ingot_values["升贴水数据"], 11, 14),
@@ -522,9 +586,9 @@ def read_stonex() -> dict[str, Any]:
     output: dict[str, Any] = {}
 
     key_sheet = book.sheet_by_name("KeyForecasts")
-    years = [int(number(key_sheet.cell_value(2, col)) or 0) for col in (2, 4, 6, 8)]
+    years = [int(number(key_sheet.cell_value(6, col)) or 0) for col in (2, 4, 6, 8)]
     forecast = []
-    for row in range(4, min(key_sheet.nrows, 18)):
+    for row in range(8, min(key_sheet.nrows, 21)):
         label = str(key_sheet.cell_value(row, 1) or "").strip()
         if not label:
             continue
@@ -557,11 +621,11 @@ def read_stonex() -> dict[str, Any]:
         )
     output["quarterly"] = quarterly
 
-    output["consumption"] = read_stonex_country_sheet(book, "Consumption", header_row=2, start_row=3)
-    output["mineProduction"] = read_stonex_country_sheet(book, "MineProduction", header_row=3, start_row=4)
-    output["smelterProduction"] = read_stonex_country_sheet(book, "SmelterProduction", header_row=3, start_row=4)
-    output["globalBalance"] = read_stonex_metric_sheet(book, "GlobalBalance", header_row=2, start_row=3)
-    output["chinaTrade"] = read_stonex_metric_sheet(book, "ChinaTrade", header_row=2, start_row=4)
+    output["consumption"] = read_stonex_country_sheet(book, "Consumption", header_row=6, start_row=8)
+    output["mineProduction"] = read_stonex_country_sheet(book, "MineProduction", header_row=7, start_row=9)
+    output["smelterProduction"] = read_stonex_country_sheet(book, "SmelterProduction", header_row=7, start_row=9)
+    output["globalBalance"] = read_stonex_metric_sheet(book, "GlobalBalance", header_row=6, start_row=8)
+    output["chinaTrade"] = read_stonex_metric_sheet(book, "ChinaTrade", header_row=7, start_row=8)
     book.release_resources()
     return output
 
@@ -723,6 +787,7 @@ def build_data() -> dict[str, Any]:
         "tc_south": api_series.get("tc_south", []),
         "refined_output": api_series.get("refined_output", []),
         "concentrate_output": api_series.get("concentrate_output", []),
+        "concentrate_import": api_series.get("concentrate_import") or local["ore_import"],
         "galvanized_rate": api_series.get("galvanized_rate", []),
         "zinc_oxide_rate": api_series.get("zinc_oxide_rate", []),
         "die_cast_rate": api_series.get("die_cast_rate", []),
@@ -732,6 +797,9 @@ def build_data() -> dict[str, Any]:
         "galvanized_inventory": api_series.get("galvanized_inventory", []),
         "galvanized_mill_inventory": api_series.get("galvanized_mill_inventory", []),
     }
+    refined_net_import = monthly_difference(
+        series["refined_import"], series["refined_export"], scale=0.0001
+    )
 
     try:
         quote = fetch_quote(key)
@@ -758,7 +826,7 @@ def build_data() -> dict[str, Any]:
         }
 
     refined_balance = extend_refined_balance(local["refined_balance"], api_series)
-    mine_balance = extend_mine_balance(local["mine_balance"], api_series, local["ore_import"])
+    mine_balance = extend_mine_balance(local["mine_balance"], api_series, series["concentrate_import"])
     latest = {
         "shfe": [quote.get("asOf"), quote.get("last")],
         "lme": series_latest(series["lme_price"]),
@@ -775,10 +843,14 @@ def build_data() -> dict[str, Any]:
         "zincOxideRate": series_latest(series["zinc_oxide_rate"]),
         "dieCastRate": series_latest(series["die_cast_rate"]),
         "shanghaiPremium": series_latest(series["shanghai_premium"]),
+        "oreImport": series_latest(series["concentrate_import"]),
+        "refinedNetImport": series_latest(refined_net_import),
+        "monthSpread": series_latest(local["month_spread"]),
     }
 
     charts = {
         "shfePrice": seasonal_chart(series["price"]),
+        "monthSpread": seasonal_chart(local["month_spread"]),
         "lmePrice": seasonal_chart(series["lme_price"]),
         "premium": continuous_chart(
             {
@@ -805,6 +877,7 @@ def build_data() -> dict[str, Any]:
         ),
         "refinedOutput": seasonal_chart(series["refined_output"]),
         "concentrateOutput": seasonal_chart(series["concentrate_output"]),
+        "concentrateImport": seasonal_chart(series["concentrate_import"]),
         "refinedTrade": continuous_chart(
             {
                 "进口": [[day, value / 10000] for day, value in series["refined_import"]],
@@ -812,6 +885,7 @@ def build_data() -> dict[str, Any]:
             },
             limit=None,
         ),
+        "refinedNetImport": seasonal_chart(refined_net_import),
         "shfeStock": seasonal_chart(series["shfe_stock"]),
         "lmeStock": seasonal_chart(series["lme_stock"]),
         "socialStock": seasonal_chart(series["social_stock"]),
@@ -824,6 +898,9 @@ def build_data() -> dict[str, Any]:
             },
             limit=300,
         ),
+        "galvanizedRateSeasonal": seasonal_chart(series["galvanized_rate"]),
+        "zincOxideRateSeasonal": seasonal_chart(series["zinc_oxide_rate"]),
+        "dieCastRateSeasonal": seasonal_chart(series["die_cast_rate"]),
         "galvanizedInventory": continuous_chart(
             {
                 "镀锌板卷社会库存": series["galvanized_inventory"],
@@ -831,6 +908,7 @@ def build_data() -> dict[str, Any]:
             },
             limit=300,
         ),
+        "galvanizedInventorySeasonal": seasonal_chart(series["galvanized_inventory"]),
         "pmi": continuous_chart(
             {
                 "中国制造业PMI新订单": local["pmi_china"],
@@ -846,6 +924,57 @@ def build_data() -> dict[str, Any]:
     concentrate_balance = metric_lookup(forecast_rows, "concentrate", "balance")
     refined_production = metric_lookup(forecast_rows, "refined", "production")
     consumption = metric_lookup(forecast_rows, "consumption")
+
+    tc_value = series_latest(series["tc_import"])[1]
+    profit_day, profit_value = series_latest(local["smelting_profit_domestic"])
+    galvanized_value = series_latest(series["galvanized_rate"])[1]
+    oxide_value = series_latest(series["zinc_oxide_rate"])[1]
+    die_cast_value = series_latest(series["die_cast_rate"])[1]
+    social_percentile = calendar_month_percentile(series["social_stock"])
+    cycle_signals = [
+        {
+            "name": "矿端",
+            "state": "极紧" if tc_value is not None and tc_value < 0 else "偏紧" if tc_value is not None and tc_value < 50 else "宽松",
+            "detail": f"进口 TC {tc_value:,.1f} 美元/干吨" if tc_value is not None else "TC 暂无有效值",
+            "tone": "down" if tc_value is not None and tc_value < 0 else "neutral",
+        },
+        {
+            "name": "冶炼",
+            "state": "亏损压产" if profit_value is not None and profit_value < 0 else "利润修复" if profit_value is not None else "待确认",
+            "detail": f"国产矿模型利润 {profit_value:,.0f} 元/吨 · {profit_day}" if profit_value is not None else "利润模型暂无有效值",
+            "tone": "down" if profit_value is not None and profit_value < 0 else "up" if profit_value is not None else "neutral",
+        },
+        {
+            "name": "需求",
+            "state": "镀锌偏强、其他分化" if galvanized_value is not None and galvanized_value >= 80 else "需求偏弱",
+            "detail": f"镀锌 {galvanized_value or 0:.1f}% / 氧化锌 {oxide_value or 0:.1f}% / 合金 {die_cast_value or 0:.1f}%",
+            "tone": "up" if galvanized_value is not None and galvanized_value >= 80 else "down",
+        },
+        {
+            "name": "库存",
+            "state": "季节性高位" if social_percentile is not None and social_percentile >= 75 else "季节性低位" if social_percentile is not None and social_percentile <= 25 else "季节性中位",
+            "detail": f"国内现货库存处于历史同月 {social_percentile:.0f}% 分位" if social_percentile is not None else "历史同月分位待补",
+            "tone": "down" if social_percentile is not None and social_percentile >= 75 else "up" if social_percentile is not None and social_percentile <= 25 else "neutral",
+        },
+    ]
+    research_framework = [
+        {"module": "定价", "metric": "沪锌 / LME 价格", "importance": "核心", "frequency": "日", "view": "季节性 + K线", "reason": "识别年度相对位置与趋势阶段"},
+        {"module": "定价", "metric": "主连月差 / 三地升贴水", "importance": "核心", "frequency": "日", "view": "月差季节性；升贴水连续", "reason": "现货紧张最先反映在结构而非绝对价"},
+        {"module": "矿端", "metric": "国内矿产量", "importance": "核心", "frequency": "月", "view": "季节性", "reason": "春节、检修和环保扰动强"},
+        {"module": "矿端", "metric": "锌精矿进口", "importance": "核心", "frequency": "月", "view": "季节性", "reason": "国内原料缺口的主要补充项"},
+        {"module": "矿端", "metric": "进口 / 国产 TC", "importance": "核心", "frequency": "周/日", "view": "连续趋势", "reason": "矿松紧与冶炼利润分配的核心价格"},
+        {"module": "矿端", "metric": "港口库存", "importance": "高", "frequency": "周", "view": "季节性", "reason": "到港节奏具有明显日历效应"},
+        {"module": "冶炼", "metric": "精炼锌产量", "importance": "核心", "frequency": "月", "view": "季节性", "reason": "检修、利润和原料共同决定供给"},
+        {"module": "冶炼", "metric": "国产 / 进口矿冶炼利润", "importance": "核心", "frequency": "日", "view": "连续趋势", "reason": "判断减产兑现概率，不做季节性"},
+        {"module": "冶炼", "metric": "精炼锌净进口", "importance": "高", "frequency": "月", "view": "季节性", "reason": "进口窗口与跨市场价差带来月度波动"},
+        {"module": "需求", "metric": "镀锌 / 氧化锌 / 合金开工", "importance": "核心", "frequency": "周/月", "view": "分别做季节性", "reason": "混画会掩盖频率差异，春节效应显著"},
+        {"module": "需求", "metric": "镀锌板卷库存", "importance": "高", "frequency": "周", "view": "季节性", "reason": "终端去库速度比单周开工更可靠"},
+        {"module": "需求", "metric": "中国新订单 / 美国 ISM", "importance": "高", "frequency": "月", "view": "连续趋势 + 50线", "reason": "指标已季调，不再做季节性"},
+        {"module": "库存", "metric": "SHFE / LME / 国内现货", "importance": "核心", "frequency": "日/周", "view": "季节性", "reason": "同月比较才能区分主动与被动累库"},
+        {"module": "平衡", "metric": "国内矿端 / 锭端月度平衡", "importance": "核心", "frequency": "月", "view": "供需柱 + 平衡线", "reason": "残差与估算必须和实绩分层"},
+        {"module": "全球", "metric": "StoneX 年度 / 季度平衡", "importance": "高", "frequency": "季/年", "view": "预测情景", "reason": "用于中期锚定，不与高频实绩混画"},
+        {"module": "企业", "metric": "矿企 / 冶炼厂产量、指引、Capex", "importance": "高", "frequency": "季", "view": "同比 / 环比 / 指引差", "reason": "验证供给叙事是否在财报端兑现"},
+    ]
 
     output = {
         "meta": {
@@ -883,6 +1012,8 @@ def build_data() -> dict[str, Any]:
             "refinedProduction": refined_production,
             "consumption": consumption,
         },
+        "cycleSignals": cycle_signals,
+        "researchFramework": research_framework,
         "companies": local["companies"],
         "projects": local["projects"],
         "sourceRegistry": api_meta,

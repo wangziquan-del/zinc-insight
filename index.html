@@ -65,6 +65,7 @@
 
     <nav class="nav" id="nav" role="tablist" aria-label="锌产业监测章节">
       <button class="active" data-tab="overview">总览</button>
+      <button data-tab="framework">研究框架</button>
       <button data-tab="price">价格</button>
       <button data-tab="mine">矿端</button>
       <button data-tab="smelting">冶炼</button>
@@ -89,12 +90,22 @@
         <div class="callout" id="overview-callout"></div>
       </section>
 
+      <section class="section" id="framework">
+        <div class="section-head"><div><h2>研究框架</h2><p>先判断周期位置，再看供需验证；图形服从数据频率，不为季节性而季节性</p></div><span class="tag warn">研究优先级 / 图形选择</span></div>
+        <div class="tech-grid" id="cycle-signal-grid"></div>
+        <div class="grid">
+          <div class="card wide"><h3>锌研究指标地图</h3><div class="meta">核心 = 直接影响价格与供需；高 = 验证核心叙事；所有预测与倒算均与实绩分层</div><div class="table-wrap"><table><thead><tr><th>模块</th><th>指标</th><th>重要性</th><th>频率</th><th>首选图形</th><th>为什么看</th></tr></thead><tbody id="framework-body"></tbody></table></div></div>
+          <div class="card"><h3>必须做季节性</h3><div class="meta">先消除春节、检修、运输与年度日历效应</div><ul class="research-list"><li>矿产量、矿进口、精炼锌产量与净进口</li><li>SHFE / LME / 国内现货 / 港口库存</li><li>镀锌、氧化锌、锌合金开工与镀锌库存</li><li>沪锌 / LME 价格用于识别年度相对位置</li></ul></div>
+          <div class="card"><h3>保持连续趋势</h3><div class="meta">这些指标的核心是制度、利润和结构，不是日历</div><ul class="research-list"><li>进口 / 国产 TC、冶炼利润、现货升贴水</li><li>PMI 新订单与 ISM：本身已经季调</li><li>国内月度平衡、StoneX 年度 / 季度预测</li><li>企业产量、指引与资本开支：看同比 / 环比兑现</li></ul></div>
+        </div>
+      </section>
       <section class="section" id="price">
         <div class="section-head"><div><h2>价格与结构</h2><p>内外盘、地区升贴水与期现信号</p></div><span class="tag ok">价格 / 升贴水 / K线</span></div>
         <div class="kpis" id="price-kpis"></div>
         <div class="grid">
           <div class="card"><h3>沪锌价格季节性</h3><div class="meta">元/吨 · 2022—2026</div><div class="chart"><canvas id="price-shfe"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 2022—2026</div><div class="chart"><canvas id="price-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>沪锌主连月差季节性</h3><div class="meta">元/吨 · 近月结构；升水为紧、贴水为松，结合现货升贴水交叉验证</div><div class="chart"><canvas id="price-spread"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>三地现货升贴水</h3><div class="meta">元/吨 · 上海直集优先；广东/天津来自锭篇缓存</div><div class="chart"><canvas id="price-premium"></canvas><div class="empty">暂无数据</div></div></div>
         </div>
       </section>
@@ -104,6 +115,7 @@
         <div class="kpis" id="mine-kpis"></div>
         <div class="grid">
           <div class="card"><h3>国内锌精矿产量</h3><div class="meta">万吨金属量 · 直集月度季节性</div><div class="chart"><canvas id="mine-output"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>中国锌精矿进口季节性</h3><div class="meta">万实物吨 · 知几优先；观察海外矿对国内缺口的补充</div><div class="chart"><canvas id="mine-import"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · 直集周度季节性</div><div class="chart"><canvas id="mine-port-stock"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>国产与进口锌精矿 TC</h3><div class="meta">国产：元/金属吨；进口：美元/干吨 · 双轴</div><div class="chart"><canvas id="mine-tc"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>国内月度矿端供应与冶炼需求</h3><div class="meta">万吨金属量 · 锭篇平衡 + 直集续接</div><div class="chart"><canvas id="mine-balance-chart"></canvas><div class="empty">暂无数据</div></div></div>
@@ -116,6 +128,7 @@
         <div class="kpis" id="smelting-kpis"></div>
         <div class="grid">
           <div class="card"><h3>中国精炼锌产量</h3><div class="meta">万吨 · 直集月度季节性</div><div class="chart"><canvas id="smelting-output"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>精炼锌净进口季节性</h3><div class="meta">万吨 · 进口减出口；跨市场价差与进口窗口的结果</div><div class="chart"><canvas id="smelting-net-import"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>精炼锌进出口</h3><div class="meta">万吨 · 中国海关 · 直集月度</div><div class="chart"><canvas id="smelting-trade"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>国产 / 进口矿冶炼利润模型</h3><div class="meta">元/吨 · 锭篇“利润”缓存值；模型口径，不等同企业真实利润</div><div class="chart"><canvas id="smelting-profit"></canvas><div class="empty">暂无数据</div></div></div>
         </div>
@@ -125,7 +138,11 @@
         <div class="section-head"><div><h2>需求</h2><p>镀锌、氧化锌、压铸合金与宏观订单</p></div><span class="tag ok">开工率优先直集</span></div>
         <div class="kpis" id="demand-kpis"></div>
         <div class="grid">
+          <div class="card"><h3>镀锌板卷开工率季节性</h3><div class="meta">% · 周度；春节复工与旺季兑现</div><div class="chart"><canvas id="demand-galvanized-rate"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>氧化锌开工率季节性</h3><div class="meta">% · 月度；轮胎、橡胶与化工需求</div><div class="chart"><canvas id="demand-oxide-rate"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>压铸锌合金开工率季节性</h3><div class="meta">% · 月度；五金、汽车与出口订单</div><div class="chart"><canvas id="demand-diecast-rate"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>锌下游开工率</h3><div class="meta">百分比 · 镀锌周度 / 氧化锌月度 / 锌合金月度</div><div class="chart"><canvas id="demand-rates"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>镀锌板卷总库存季节性</h3><div class="meta">万吨 · 周度；用去库速度验证开工是否转化为真实需求</div><div class="chart"><canvas id="demand-inventory-seasonal"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>镀锌板卷库存</h3><div class="meta">万吨 · 社库与钢厂厂内库存</div><div class="chart"><canvas id="demand-inventory"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>制造业订单景气</h3><div class="meta">PMI · 中国新订单 / 美国ISM制造业</div><div class="chart"><canvas id="demand-pmi"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>StoneX 全球精炼锌消费</h3><div class="meta">千吨 · 2022—2028E · 主要国家与地区</div><div class="chart"><canvas id="demand-global"></canvas><div class="empty">暂无数据</div></div></div>
