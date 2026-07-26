@@ -5,6 +5,7 @@ const html=read('index.html'),dataText=read('data.json'),fail=[];
 const ok=(v,m)=>{if(!v)fail.push(m)};
 ok(html.includes('<meta charset="utf-8">'),'missing UTF-8');
 ok(html.includes('class="nav" id="nav"'),'missing nav class');
+ok(html.includes('id="timeframe-tech-grid"'),'timeframe technical grid missing');ok(html.includes('id="timeframe-conclusion"'),'timeframe conclusion missing');ok(read('app.js').includes('/api/technical?commodity=zinc'),'zinc technical endpoint missing');
 for(const id of ['overview','framework','price','mine','smelting','demand','inventory','balance','companies','policy','intelligence'])ok(html.includes(`id="${id}"`),`missing ${id}`);
 const ids=[...html.matchAll(/\sid="([^"]+)"/g)].map(x=>x[1]);ok(ids.filter((x,i)=>ids.indexOf(x)!==i).length===0,'duplicate ids');
 ok(!/\b(?:NaN|Infinity|-Infinity)\b/.test(dataText),'non-finite data');

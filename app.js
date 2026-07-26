@@ -532,6 +532,65 @@
     }).join("");
   }
 
+  function timeframeConclusion(items) {
+    const status = Object.fromEntries(items.map(item => [String(item.frame || ""), item.status]));
+    const small = status["小级别｜15 分钟"];
+    const medium = status["中级别｜60 分钟"];
+    const large = status["大级别｜日线"];
+    if (small === "偏多" && medium === "偏多" && large === "偏多") return "小、中、大级别形成偏多共振；仍需用价格结构和风险位验证，不等同于追涨信号。";
+    if (small === "偏空" && medium === "偏空" && large === "偏空") return "小、中、大级别形成偏空共振；仍需防范超跌反抽，不等同于追空信号。";
+    if (large === "偏多" && small === "偏空") return "大级别保持偏多，小级别转弱，当前更像上涨结构中的回调或分歧阶段。";
+    if (large === "偏空" && small === "偏多") return "大级别仍偏空，小级别修复，当前更像弱势结构中的反弹或分歧阶段。";
+    if (medium === large && medium && small !== medium) return `中、大级别${medium}，小级别尚未确认，等待短周期重新与主趋势同向。`;
+    return "三个级别方向分化，优先服从大级别、用中级别确认、小级别寻找节奏。";
+  }
+
+  function renderTimeframeTechnical(items, updatedAt, source) {
+    const grid = document.getElementById("timeframe-tech-grid");
+    if (!grid || !Array.isArray(items) || !items.length) return;
+    grid.innerHTML = items.map(item => {
+      const tone = ["up", "down", "neutral"].includes(item.tone) ? item.tone : "neutral";
+      return `<article class="tech-card ${tone}"><h3>${escapeHtml(item.frame)}<span class="score">${escapeHtml(item.status)}</span></h3><p>${escapeHtml(item.detail)}</p></article>`;
+    }).join("");
+    const conclusion = document.getElementById("timeframe-conclusion");
+    if (conclusion) conclusion.innerHTML = `<b>多周期结论：</b>${escapeHtml(timeframeConclusion(items))}`;
+    const meta = document.getElementById("multi-tech-meta");
+    if (meta) meta.textContent = `${source || "沪锌多周期技术分析"} · 更新 ${String(updatedAt || "—").replace("T", " ").slice(0, 16)}`;
+  }
+
+  async function refreshTimeframeTechnical() {
+    const status = document.getElementById("multi-tech-status");
+    const snapshotKey = "zinc-timeframe-tech-v1";
+    try {
+      const response = await fetch(`${LIVE_API_HOST}/api/technical?commodity=zinc&t=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      if (payload.commodity !== "zinc") throw new Error("commodity mismatch");
+      const items = Array.isArray(payload.tech) ? payload.tech : [];
+      if (!items.length) throw new Error("empty technical payload");
+      renderTimeframeTechnical(items, payload.updated_at, payload.source);
+      try { localStorage.setItem(snapshotKey, JSON.stringify(payload)); } catch (_) {}
+      const failures = Object.keys(payload.errors || {}).length;
+      if (status) {
+        status.textContent = `${items.length}/3 级别已更新${failures ? " · 部分周期异常" : ""}`;
+        status.className = `tag ${failures ? "warn" : "ok"}`;
+      }
+    } catch (error) {
+      let restored = false;
+      try {
+        const cached = JSON.parse(localStorage.getItem(snapshotKey) || "null");
+        if (cached && Array.isArray(cached.tech) && cached.tech.length) {
+          renderTimeframeTechnical(cached.tech, cached.updated_at, `${cached.source || "多周期技术分析"} · 最近成功快照`);
+          restored = true;
+        }
+      } catch (_) {}
+      if (status) {
+        status.textContent = restored ? "实时异常 · 保留最近快照" : "多周期接口暂不可用";
+        status.className = "tag warn";
+        status.title = String(error && error.message || error);
+      }
+    }
+  }
   async function refreshSocialIntelligence() {
     const status = document.getElementById("social-status");
     try {
@@ -786,6 +845,7 @@
     companiesSection();
     policySection();
     intelligenceSection();
+    refreshTimeframeTechnical();
     refreshSocialIntelligence();
     navButtons.forEach(button => button.addEventListener("click", () => activateSection(button)));
     const requested = location.hash.replace("#", "");
