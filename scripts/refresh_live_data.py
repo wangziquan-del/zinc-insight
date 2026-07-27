@@ -31,9 +31,9 @@ def main():
     except Exception as exc:
         meta["warnings"].append({"source": "直集实时行情刷新", "issue": type(exc).__name__})
     try:
-        rows = z.fetch_kline(key)
+        rows = z.fetch_kline(key, limit=1800)
         if rows:
-            data["kline"] = z.enrich_kline(rows)
+            data["kline"] = z.enrich_kline(rows[-360:])
     except Exception as exc:
         rows = []
         meta["warnings"].append({"source": "直集日K刷新", "issue": type(exc).__name__})
@@ -57,7 +57,9 @@ def main():
 
     charts = data["charts"]
     if rows:
-        charts["shfePrice"] = z.seasonal_chart([[x["time"][:10], x["c"]] for x in rows])
+        charts["shfePrice"] = z.seasonal_chart(
+            [[x["time"][:10], x["c"]] for x in rows], start_year=2022
+        )
     seasonal = {
         "lmePrice": "lme_price", "refinedOutput": "refined_output",
         "concentrateOutput": "concentrate_output", "shfeStock": "shfe_stock",
@@ -70,7 +72,18 @@ def main():
     }
     for chart, source in seasonal.items():
         if series.get(source):
-            charts[chart] = z.seasonal_chart(series[source])
+            charts[chart] = z.seasonal_chart(
+                series[source], start_year=2022 if chart == "lmePrice" else None
+            )
+    if series.get("shfe_stock") and series.get("lme_stock"):
+        global_exchange_stock = z.asof_sum_series(
+            [series["shfe_stock"], series["lme_stock"]],
+            scale=0.0001,
+            start="2022-01-01",
+        )
+        charts["globalExchangeStock"] = z.seasonal_chart(
+            global_exchange_stock, start_year=2022
+        )
     groups = {
         "tc": ({"北方50%Zn国产TC": "tc_north", "南方50%Zn国产TC": "tc_south",
                 "进口50%Zn TC": "tc_import"}, 420),

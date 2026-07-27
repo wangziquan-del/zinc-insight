@@ -178,53 +178,93 @@
     return row && row.values ? number(row.values[String(year)]) : null;
   }
 
-  function overview() {
+  let overviewQuoteLoading = false;
+
+  function quoteStamp(item, fallback) {
+    if (!item) return fallback || "—";
+    const stamp = [item.date, item.time].filter(Boolean).join(" ");
+    return stamp || fallback || "—";
+  }
+
+  function renderOverviewKpis(live = null) {
     const latest = DATA.latest || {};
-    const quote = DATA.quote || {};
+    const cachedQuote = DATA.quote || {};
     const shfe = pair(latest.shfe);
     const lme = pair(latest.lme);
     const social = pair(latest.socialStock);
     const tcImport = pair(latest.tcImport);
+    const liveZn = live && live.zn;
+    const liveLme = live && live.lme;
+    const shfeValue = liveZn && liveZn.last != null ? number(liveZn.last) : shfe[1];
+    const lmeValue = liveLme && liveLme.last != null ? number(liveLme.last) : lme[1];
+    const shfeChange = liveZn && liveZn.change_pct != null
+      ? number(liveZn.change_pct)
+      : (cachedQuote.changePct != null ? number(cachedQuote.changePct) : null);
     renderKpis("overview-kpis", [
-      ["沪锌主连", `${fmt(shfe[1], 0)} 元/吨`, quote.asOf || shfe[0], number(quote.changePct) >= 0 ? "#ff758f" : "#3dd6b6"],
-      ["LME 3M", `${fmt(lme[1], 0)} 美元/吨`, lme[0]],
+      ["沪锌主连", `${fmt(shfeValue, 0)} 元/吨`, quoteStamp(liveZn, cachedQuote.asOf || shfe[0]), shfeChange == null ? "" : (shfeChange >= 0 ? "#ff758f" : "#3dd6b6")],
+      ["LME 3M", `${fmt(lmeValue, 1)} 美元/吨`, quoteStamp(liveLme, lme[0])],
       ["国内锌锭现货库存", `${fmt(social[1], 2)} 万吨`, social[0]],
       ["进口矿 TC", `${fmt(tcImport[1], 1)} 美元/干吨`, tcImport[0]]
     ]);
+    if (shfeChange != null) updateMarketMode(shfeChange);
+  }
+
+  async function refreshOverviewQuotes() {
+    if (overviewQuoteLoading) return;
+    overviewQuoteLoading = true;
+    const status = document.getElementById("live-status");
+    try {
+      const response = await fetch(`${LIVE_API_HOST}/api/quotes?commodity=zinc&t=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const payload = await response.json();
+      if (!payload || (!payload.zn && !payload.lme)) throw new Error("empty zinc quote");
+      renderOverviewKpis(payload);
+      if (status) {
+        const stamp = String(payload.updated_at || "").replace("T", " ").slice(0, 19);
+        status.textContent = `沪锌 / LME 行情 · 15秒刷新${stamp ? ` · ${stamp}` : ""}`;
+        status.className = "tag ok";
+      }
+    } catch (_) {
+      if (status) {
+        status.textContent = "实时服务暂不可用 · 显示最近缓存";
+        status.className = "tag warn";
+      }
+    } finally {
+      overviewQuoteLoading = false;
+    }
+  }
+
+  function overview() {
+    const latest = DATA.latest || {};
+    renderOverviewKpis();
     const status = document.getElementById("live-status");
     if (status) {
-      status.textContent = DATA.meta && DATA.meta.apiConnected ? "直集 API · 已连接" : "Excel 回退 · 直集未连接";
+      status.textContent = DATA.meta && DATA.meta.apiConnected ? "数据缓存已载入 · 正在连接实时行情" : "Excel 回退 · 正在连接实时行情";
       status.className = `tag ${DATA.meta && DATA.meta.apiConnected ? "ok" : "warn"}`;
     }
     const built = document.getElementById("build-date");
     if (built) built.textContent = ` ${String((DATA.meta || {}).builtAt || "—").replace("T", " ").slice(0, 19)}`;
     seasonal("overview-price", (DATA.charts || {}).shfePrice);
     seasonal("overview-lme", (DATA.charts || {}).lmePrice);
-    const stockValues = [
-      number(pair(latest.shfeStock)[1]) / 10000,
-      number(pair(latest.lmeStock)[1]) / 10000,
-      number(pair(latest.socialStock)[1]),
-      number(pair(latest.concentratePortStock)[1])
-    ];
-    makeChart("overview-stocks", "bar", {
-      labels: ["SHFE锌锭", "LME锌锭", "国内现货", "锌精矿港口"],
-      datasets: [{ label: "万吨", data: stockValues, backgroundColor: ["#6e9fff99", "#f4b94299", "#3dd6b699", "#a989ff99"], borderWidth: 0 }]
-    }, { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } });
+    seasonal("overview-stocks", (DATA.charts || {}).globalExchangeStock);
+    continuous("overview-trade-profit", (DATA.charts || {}).refinedTradeProfit, {
+      scales: {
+        y: {
+          grid: {
+            color: context => Number(context.tick.value) === 0 ? "#ff758f" : cssVar("--line", "#1d2d3a"),
+            lineWidth: context => Number(context.tick.value) === 0 ? 1.8 : 1
+          }
+        }
+      }
+    });
 
-    const summary = DATA.forecastSummary || {};
-    renderKpis("forecast-kpis", [
-      ["全球矿平衡", `${signed(metricValue(summary.concentrateBalance, 2026), 0)} kt`, "StoneX 2026E"],
-      ["全球锭平衡", `${signed(metricValue(summary.metalBalance, 2026), 0)} kt`, "StoneX 2026E"],
-      ["精炼锌产量", `${fmt(metricValue(summary.refinedProduction, 2026), 0)} kt`, "StoneX 2026E"],
-      ["全球消费", `${fmt(metricValue(summary.consumption, 2026), 0)} kt`, "StoneX 2026E"]
-    ]);
+    const importProfit = pair(latest.ingotImportProfit);
+    const exportProfit = pair(latest.ingotExportProfit);
     const callout = document.getElementById("overview-callout");
     if (callout) {
-      callout.innerHTML = `<b>数据优先级：</b>${escapeHtml((DATA.meta || {}).dataPriority || "直集 API > Excel > StoneX")}。实时指标显示各自截止日；StoneX 预测不覆盖企业季报或国内月度实绩。`;
+      callout.innerHTML = `<b>进出口利润交叉验证：</b>以 0 线判断贸易窗口。进口盈亏转正偏向增加国内供应，出口利润转正偏向减少国内供应；两条线谁更接近 0，可验证内外盘价差对应的贸易方向。最新进口盈亏 <b>${fmt(importProfit[1], 0)} 元/吨</b>（${escapeHtml(importProfit[0] || "—")}），出口利润 <b>${fmt(exportProfit[1], 0)} 元/吨</b>（${escapeHtml(exportProfit[0] || "—")}）。`;
     }
-    if (quote.changePct != null) updateMarketMode(quote.changePct);
   }
-
   function frameworkSection() {
     const grid = document.getElementById("cycle-signal-grid");
     if (grid) grid.innerHTML = (DATA.cycleSignals || []).map(item => `<article class="tech-card ${escapeHtml(item.tone || "neutral")}">
@@ -835,6 +875,8 @@
     updateThemeClock();
     setInterval(() => updateThemeClock(), 60_000);
     overview();
+    refreshOverviewQuotes();
+    setInterval(refreshOverviewQuotes, 15_000);
     frameworkSection();
     priceSection();
     mineSection();

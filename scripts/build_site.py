@@ -120,10 +120,25 @@ def series_latest(series: list[list[Any]]) -> list[Any]:
     return series[-1] if series else [None, None]
 
 
-def seasonal_chart(series: list[list[Any]], years: int = 5) -> dict[str, Any]:
+def seasonal_chart(
+    series: list[list[Any]],
+    years: int | None = 5,
+    start_year: int | None = None,
+) -> dict[str, Any]:
     if not series:
         return {"labels": [], "datasets": []}
-    available = sorted({int(item[0][:4]) for item in series if item[0] >= "2021-01-01"})[-years:]
+    available = sorted(
+        {
+            int(item[0][:4])
+            for item in series
+            if item[0] >= "2021-01-01"
+            and (start_year is None or int(item[0][:4]) >= start_year)
+        }
+    )
+    if years is not None and start_year is None:
+        available = available[-years:]
+    if not available:
+        return {"labels": [], "datasets": []}
     yearly_counts = {
         year: sum(1 for item in series if int(item[0][:4]) == year)
         for year in available
@@ -146,6 +161,25 @@ def seasonal_chart(series: list[list[Any]], years: int = 5) -> dict[str, Any]:
             }
         )
     return {"labels": labels, "datasets": datasets}
+
+
+def asof_sum_series(
+    series_list: list[list[list[Any]]],
+    *,
+    scale: float = 1.0,
+    start: str = "2022-01-01",
+) -> list[list[Any]]:
+    lookups = [{day: value for day, value in series if day >= start} for series in series_list]
+    labels = sorted({day for lookup in lookups for day in lookup})
+    current: list[float | None] = [None] * len(lookups)
+    output = []
+    for day in labels:
+        for index, lookup in enumerate(lookups):
+            if day in lookup:
+                current[index] = lookup[day]
+        if current and all(value is not None for value in current):
+            output.append([day, clean_number(sum(current) * scale)])
+    return output
 
 
 def read_seasonal_matrix(
@@ -471,6 +505,12 @@ def read_excel_sources() -> tuple[dict[str, Any], list[dict[str, Any]]]:
         "tc_import": extract_xy(ingot_values["TC"], 1, 3),
         "smelting_profit_domestic": extract_xy(ingot_values["利润"], 16, 17),
         "smelting_profit_import": extract_xy(ingot_values["利润"], 30, 31),
+        "ingot_import_profit": extract_xy(
+            ingot_values["精炼锌进出口"], 60, 61, start="2022-01-01"
+        ),
+        "ingot_export_profit": extract_xy(
+            ingot_values["源点补充"], 1, 2, start="2022-01-01"
+        ),
         "ore_import": extract_xy(ingot_values["锌矿进口"], 11, 12, scale=0.0001),
         "pmi_china": extract_xy(demand_values["PMI"], 1, 2),
         "pmi_us": extract_xy(demand_values["PMI"], 11, 12),
@@ -797,6 +837,9 @@ def build_data() -> dict[str, Any]:
         "galvanized_inventory": api_series.get("galvanized_inventory", []),
         "galvanized_mill_inventory": api_series.get("galvanized_mill_inventory", []),
     }
+    global_exchange_stock = asof_sum_series(
+        [series["shfe_stock"], series["lme_stock"]], scale=0.0001, start="2022-01-01"
+    )
     refined_net_import = monthly_difference(
         series["refined_import"], series["refined_export"], scale=0.0001
     )
@@ -845,13 +888,23 @@ def build_data() -> dict[str, Any]:
         "shanghaiPremium": series_latest(series["shanghai_premium"]),
         "oreImport": series_latest(series["concentrate_import"]),
         "refinedNetImport": series_latest(refined_net_import),
+        "ingotImportProfit": series_latest(local["ingot_import_profit"]),
+        "ingotExportProfit": series_latest(local["ingot_export_profit"]),
         "monthSpread": series_latest(local["month_spread"]),
     }
 
     charts = {
-        "shfePrice": seasonal_chart(series["price"]),
+        "shfePrice": seasonal_chart(series["price"], start_year=2022),
         "monthSpread": seasonal_chart(local["month_spread"]),
-        "lmePrice": seasonal_chart(series["lme_price"]),
+        "lmePrice": seasonal_chart(series["lme_price"], start_year=2022),
+        "globalExchangeStock": seasonal_chart(global_exchange_stock, start_year=2022),
+        "refinedTradeProfit": continuous_chart(
+            {
+                "锌锭进口盈亏（含税）": local["ingot_import_profit"],
+                "锌出口利润": local["ingot_export_profit"],
+            },
+            limit=None,
+        ),
         "premium": continuous_chart(
             {
                 "上海0#锌升贴水": series["shanghai_premium"],
