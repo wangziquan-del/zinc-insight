@@ -46,7 +46,7 @@
       <div>
         <div class="eyebrow">ZINC INTELLIGENCE · LIVE DASHBOARD · UI/02</div>
         <h1>锌语新愿</h1>
-        <div class="subtitle">全球锌产业监测台｜价格、矿端、冶炼、需求、库存、平衡与企业财报一屏联动。直集优先，Excel 与 StoneX 补齐。</div>
+        <div class="subtitle">全球锌产业监测台｜价格、矿端、冶炼、需求、库存、平衡与企业财报一屏联动。网络数据优先，Excel 与 StoneX 补齐。</div>
         <div class="system-deck" aria-label="系统状态">
           <span><b>01</b>DATA-FIRST</span>
           <span><b>02</b>LIVE / DAILY</span>
@@ -83,10 +83,10 @@
         <div class="section-head"><div><h2>市场总览</h2><p>双市场实时定价、2022 年起季节性与贸易利润验证</p></div><span class="tag warn" id="live-status">实时行情连接中</span></div>
         <div class="kpis" id="overview-kpis"></div>
         <div class="grid">
-          <div class="card"><h3>沪锌价格季节性</h3><div class="meta">元/吨 · 2022—2026 · 直集日K优先 / 锭篇回退</div><div class="chart"><canvas id="overview-price"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 2022—2026 · 直集日度结算</div><div class="chart"><canvas id="overview-lme"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>全球交易所显性库存季节性</h3><div class="meta">万吨 · SHFE + LME · 2022—2026</div><div class="chart"><canvas id="overview-stocks"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>国内锌锭进出口利润交叉验证</h3><div class="meta">元/吨 · 含税进口盈亏 vs 出口利润 · 0 线为窗口开闭</div><div class="chart"><canvas id="overview-trade-profit"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>沪锌价格季节性</h3><div class="meta">元/吨 · 2022—2026 · 网络日K优先 / 锭篇回退</div><div class="chart"><canvas id="overview-price"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 2022—2026 · Mysteel · LME日度结算</div><div class="chart"><canvas id="overview-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>全球交易所显性库存季节性</h3><div class="meta">万吨 · SHFE + LME · 2022—2026 · Mysteel</div><div class="chart"><canvas id="overview-stocks"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>国内锌锭进出口利润交叉验证</h3><div class="meta">元/吨 · Mysteel进口盈亏（含税） vs 网络出口利润 · 0 线为窗口开闭</div><div class="chart"><canvas id="overview-trade-profit"></canvas><div class="empty">暂无数据</div></div></div>
         </div>
         <div class="callout" id="overview-callout"></div>
       </section>
@@ -105,9 +105,10 @@
         <div class="kpis" id="price-kpis"></div>
         <div class="grid">
           <div class="card"><h3>沪锌价格季节性</h3><div class="meta">元/吨 · 2022—2026</div><div class="chart"><canvas id="price-shfe"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 2022—2026</div><div class="chart"><canvas id="price-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 3M 锌价季节性</h3><div class="meta">美元/吨 · 2022—2026 · Mysteel</div><div class="chart"><canvas id="price-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 锌 Cash−3M 升贴水季节性</h3><div class="meta">美元/吨 · 2022—2026 · Mysteel；正值=现货升水，负值=现货贴水</div><div class="chart"><canvas id="price-lme-spread"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>沪锌主连月差季节性</h3><div class="meta">元/吨 · 近月结构；升水为紧、贴水为松，结合现货升贴水交叉验证</div><div class="chart"><canvas id="price-spread"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card wide"><h3>三地现货升贴水</h3><div class="meta">元/吨 · 上海直集优先；广东/天津来自锭篇缓存</div><div class="chart"><canvas id="price-premium"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>三地现货升贴水</h3><div class="meta">元/吨 · 上海 Mysteel；广东/天津来自锭篇缓存</div><div class="chart"><canvas id="price-premium"></canvas><div class="empty">暂无数据</div></div></div>
         </div>
       </section>
 
@@ -115,28 +116,28 @@
         <div class="section-head"><div><h2>矿端</h2><p>国内矿产量、进口矿、TC与海外项目</p></div><span class="tag warn">金属量与实物吨分列</span></div>
         <div class="kpis" id="mine-kpis"></div>
         <div class="grid">
-          <div class="card"><h3>国内锌精矿产量</h3><div class="meta">万吨金属量 · 直集月度季节性</div><div class="chart"><canvas id="mine-output"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>中国锌精矿进口季节性</h3><div class="meta">万实物吨 · 知几优先；观察海外矿对国内缺口的补充</div><div class="chart"><canvas id="mine-import"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · 直集周度季节性</div><div class="chart"><canvas id="mine-port-stock"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>国内锌精矿产量</h3><div class="meta">万吨金属量 · Mysteel月度季节性</div><div class="chart"><canvas id="mine-output"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>中国锌精矿进口季节性</h3><div class="meta">万实物吨 · SMM（中国海关口径）；观察海外矿对国内缺口的补充</div><div class="chart"><canvas id="mine-import"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · Mysteel周度季节性</div><div class="chart"><canvas id="mine-port-stock"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>国产与进口锌精矿 TC</h3><div class="meta">国产：元/金属吨；进口：美元/干吨 · 双轴</div><div class="chart"><canvas id="mine-tc"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card wide"><h3>国内月度矿端供应与冶炼需求</h3><div class="meta">万吨金属量 · 锭篇平衡 + 直集续接</div><div class="chart"><canvas id="mine-balance-chart"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card wide"><h3>国内月度矿端供应与冶炼需求</h3><div class="meta">万吨金属量 · 锭篇平衡 + 网络数据续接</div><div class="chart"><canvas id="mine-balance-chart"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>海外主要矿山新增及恢复产能</h3><div class="meta">万金属吨 · 锭篇“海外新开工”</div><div class="table-wrap"><table><thead><tr><th>国家</th><th>项目 / 公司</th><th>阶段</th><th class="num">2024</th><th class="num">2025E</th><th class="num">2026E</th><th>备注</th></tr></thead><tbody id="projects-body"></tbody></table></div></div>
         </div>
       </section>
 
       <section class="section" id="smelting">
-        <div class="section-head"><div><h2>冶炼</h2><p>精炼锌产量、加工费与利润模型</p></div><span class="tag ok">直集高频 + Excel 成本模型</span></div>
+        <div class="section-head"><div><h2>冶炼</h2><p>精炼锌产量、加工费与利润模型</p></div><span class="tag ok">Mysteel高频 + Excel 成本模型</span></div>
         <div class="kpis" id="smelting-kpis"></div>
         <div class="grid">
-          <div class="card"><h3>中国精炼锌产量</h3><div class="meta">万吨 · 直集月度季节性</div><div class="chart"><canvas id="smelting-output"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>中国精炼锌产量</h3><div class="meta">万吨 · Mysteel月度季节性</div><div class="chart"><canvas id="smelting-output"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card"><h3>精炼锌净进口季节性</h3><div class="meta">万吨 · 进口减出口；跨市场价差与进口窗口的结果</div><div class="chart"><canvas id="smelting-net-import"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>精炼锌进出口</h3><div class="meta">万吨 · 中国海关 · 直集月度</div><div class="chart"><canvas id="smelting-trade"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>精炼锌进出口</h3><div class="meta">万吨 · Mysteel（中国海关口径）月度</div><div class="chart"><canvas id="smelting-trade"></canvas><div class="empty">暂无数据</div></div></div>
           <div class="card wide"><h3>国产 / 进口矿冶炼利润模型</h3><div class="meta">元/吨 · 锭篇“利润”缓存值；模型口径，不等同企业真实利润</div><div class="chart"><canvas id="smelting-profit"></canvas><div class="empty">暂无数据</div></div></div>
         </div>
       </section>
 
       <section class="section" id="demand">
-        <div class="section-head"><div><h2>需求</h2><p>镀锌、氧化锌、压铸合金与宏观订单</p></div><span class="tag ok">开工率优先直集</span></div>
+        <div class="section-head"><div><h2>需求</h2><p>镀锌、氧化锌、压铸合金与宏观订单</p></div><span class="tag ok">开工率优先 Mysteel</span></div>
         <div class="kpis" id="demand-kpis"></div>
         <div class="grid">
           <div class="card"><h3>镀锌板卷开工率季节性</h3><div class="meta">% · 周度；春节复工与旺季兑现</div><div class="chart"><canvas id="demand-galvanized-rate"></canvas><div class="empty">暂无数据</div></div></div>
@@ -151,13 +152,13 @@
       </section>
 
       <section class="section" id="inventory">
-        <div class="section-head"><div><h2>库存</h2><p>交易所、国内现货与矿端港口库存</p></div><span class="tag ok">直集最新至可得交易日</span></div>
+        <div class="section-head"><div><h2>库存</h2><p>交易所、国内现货与矿端港口库存</p></div><span class="tag ok">Mysteel / 网络最新至可得交易日</span></div>
         <div class="kpis" id="inventory-kpis"></div>
         <div class="grid">
-          <div class="card"><h3>SHFE 锌库存</h3><div class="meta">吨 · 日度季节性</div><div class="chart"><canvas id="inventory-shfe"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>LME 锌库存</h3><div class="meta">吨 · 日度季节性</div><div class="chart"><canvas id="inventory-lme"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>国内锌锭现货库存</h3><div class="meta">万吨 · 直集日度季节性</div><div class="chart"><canvas id="inventory-social"></canvas><div class="empty">暂无数据</div></div></div>
-          <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · 直集周度季节性</div><div class="chart"><canvas id="inventory-port"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>SHFE 锌库存</h3><div class="meta">吨 · 日度季节性 · Mysteel</div><div class="chart"><canvas id="inventory-shfe"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>LME 锌库存</h3><div class="meta">吨 · 日度季节性 · Mysteel</div><div class="chart"><canvas id="inventory-lme"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>国内锌锭现货库存</h3><div class="meta">万吨 · Mysteel日度季节性</div><div class="chart"><canvas id="inventory-social"></canvas><div class="empty">暂无数据</div></div></div>
+          <div class="card"><h3>锌精矿港口库存</h3><div class="meta">万吨 · Mysteel周度季节性</div><div class="chart"><canvas id="inventory-port"></canvas><div class="empty">暂无数据</div></div></div>
         </div>
       </section>
 
@@ -192,10 +193,10 @@
       <section class="section" id="intelligence">
         <div class="section-head"><div><h2>市场情绪与技术</h2><p>日K结构、均线、RSI，以及小红书 / 抖音 MCP 的真实搜索结果</p></div><span class="tag warn" id="intelligence-status">技术数据连接中</span></div>
         <div class="grid">
-          <div class="card wide"><h3>沪锌主连日K</h3><div class="meta" id="technical-meta">直集日K · MA5 / MA20 / MA60 / MA120</div><div class="kline-wrap"><canvas id="kline-canvas"></canvas></div></div>
+          <div class="card wide"><h3>沪锌主连日K</h3><div class="meta" id="technical-meta">网络日K · MA5 / MA20 / MA60 / MA120</div><div class="kline-wrap"><canvas id="kline-canvas"></canvas></div></div>
           <div class="card wide"><h3>四框架技术读数</h3><div class="tech-grid" id="tech-grid"></div></div>
           <div class="card wide"><div class="social-head"><div><h3>小 / 中 / 大级别技术图形分析</h3><div class="meta" id="multi-tech-meta">15分钟 / 60分钟 / 日线 · 均线与道氏 / MACD / 区间结构（缠论简化）/ 江恩位置 · Worker 5分钟刷新</div></div><span class="tag warn" id="multi-tech-status">多周期连接中</span></div><div class="tech-grid timeframe-grid" id="timeframe-tech-grid"><article class="tech-card neutral"><h3>小级别｜15分钟<span class="score">等待</span></h3><p>正在读取分钟图形。</p></article><article class="tech-card neutral"><h3>中级别｜60分钟<span class="score">等待</span></h3><p>正在读取小时图形。</p></article><article class="tech-card neutral"><h3>大级别｜日线<span class="score">等待</span></h3><p>正在读取日线图形。</p></article></div><div class="callout" id="timeframe-conclusion" style="margin-top:14px"><b>多周期结论：</b>等待三个级别完成计算。</div></div>
-          <div class="card wide"><div class="social-head"><div><h3>小红书 / 抖音 · “沪锌”搜索</h3><div class="meta">远程 xhs-douyin MCP · 只展示真实返回内容；互动热度不是多空结论</div></div><span class="tag warn" id="social-status">MCP 连接中</span></div><div class="news-grid social-grid" id="social-grid"><article class="news social-empty"><h3>等待远程 MCP 返回</h3><p>若鉴权或平台风控异常，将保留明确错误状态，不生成模拟帖子。</p></article></div></div>          <div class="card wide"><h3>数据源注册表</h3><div class="meta">每个直集指标保留 ID、单位、频率、组织与截止日</div><div class="table-wrap"><table><thead><tr><th>模块</th><th>指标 ID</th><th>名称</th><th>单位</th><th>频率</th><th>最新</th><th>状态</th></tr></thead><tbody id="source-body"></tbody></table></div></div>
+          <div class="card wide"><div class="social-head"><div><h3>小红书 / 抖音 · “沪锌”搜索</h3><div class="meta">远程 xhs-douyin MCP · 只展示真实返回内容；互动热度不是多空结论</div></div><span class="tag warn" id="social-status">MCP 连接中</span></div><div class="news-grid social-grid" id="social-grid"><article class="news social-empty"><h3>等待远程 MCP 返回</h3><p>若鉴权或平台风控异常，将保留明确错误状态，不生成模拟帖子。</p></article></div></div>          <div class="card wide"><h3>数据源注册表</h3><div class="meta">每个网络指标保留 ID、资料来源、单位、频率与截止日</div><div class="table-wrap"><table><thead><tr><th>模块</th><th>指标 ID</th><th>名称</th><th>资料来源</th><th>单位</th><th>频率</th><th>最新</th><th>状态</th></tr></thead><tbody id="source-body"></tbody></table></div></div>
           <div class="card wide"><h3>本地源文件</h3><div class="file-grid" id="source-files"></div></div>
         </div>
       </section>

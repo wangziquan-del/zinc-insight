@@ -26,7 +26,7 @@ jobs:
           python-version: '3.12'
       - name: Install workbook readers
         run: pip install openpyxl xlrd
-      - name: Refresh Zhiji live data
+      - name: Refresh network live data
         env:
           ZHIJI_API_KEY: ${{ secrets.ZHIJI_API_KEY }}
         run: python scripts/refresh_live_data.py

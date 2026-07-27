@@ -282,11 +282,13 @@
     renderKpis("price-kpis", [
       ["沪锌日涨跌", `${signed(quote.changePct, 2)}%`, quote.asOf || "—"],
       ["上海0#升贴水", `${signed(pair(latest.shanghaiPremium)[1], 0)} 元/吨`, pair(latest.shanghaiPremium)[0]],
+      ["LME Cash−3M", `${signed(pair(latest.lmeCash3mSpread)[1], 1)} 美元/吨`, pair(latest.lmeCash3mSpread)[0]],
       ["60日区间", `${fmt((DATA.kline || {}).low60, 0)}–${fmt((DATA.kline || {}).high60, 0)}`, "沪锌主连"],
       ["RSI(14)", fmt((DATA.kline || {}).rsi14, 1), (DATA.kline || {}).trend || "—"]
     ]);
     seasonal("price-shfe", (DATA.charts || {}).shfePrice);
     seasonal("price-lme", (DATA.charts || {}).lmePrice);
+    seasonal("price-lme-spread", (DATA.charts || {}).lmeCash3mSpread);
     seasonal("price-spread", (DATA.charts || {}).monthSpread);
     continuous("price-premium", (DATA.charts || {}).premium, {
       scales: { y: { title: { display: true, text: "元/吨" } } }
@@ -684,11 +686,11 @@
     if (grid) grid.innerHTML = frames.map(item => `<article class="tech-card ${item[3]}"><h3>${item[0]}<span class="score">${escapeHtml(item[1])}</span></h3><p>${escapeHtml(item[2])}</p></article>`).join("");
     const status = document.getElementById("intelligence-status");
     if (status) {
-      status.textContent = candles.length ? `直集日K · ${candles.length}根` : "日K回退 · 数据有限";
+      status.textContent = candles.length ? `网络日K · ${candles.length}根` : "日K回退 · 数据有限";
       status.className = `tag ${candles.length ? "ok" : "warn"}`;
     }
     const meta = document.getElementById("technical-meta");
-    if (meta && candles.length) meta.textContent = `直集日K · ${candles[0].time}—${candles[candles.length - 1].time} · MA5 / MA20 / MA60 / MA120`;
+    if (meta && candles.length) meta.textContent = `网络日K · ${candles[0].time}—${candles[candles.length - 1].time} · MA5 / MA20 / MA60 / MA120`;
     renderSources();
     setTimeout(drawKline, 30);
   }
@@ -699,7 +701,7 @@
     if (body) body.innerHTML = Object.entries(registry).map(([label, item]) => {
       const ok = !item.error;
       return `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(item.id)}</td><td>${escapeHtml(item.name || "—")}</td>
-        <td>${escapeHtml(item.unit || "—")}</td><td>${escapeHtml(item.frequency || "—")}</td><td>${escapeHtml(item.dataLatest || "—")}</td>
+        <td>${escapeHtml(item.source || "网络")}</td><td>${escapeHtml(item.unit || "—")}</td><td>${escapeHtml(item.frequency || "—")}</td><td>${escapeHtml(item.dataLatest || "—")}</td>
         <td class="${ok ? "source-ok" : "source-warn"}">${ok ? "已连接" : escapeHtml(item.error)}</td></tr>`;
     }).join("");
     const files = document.getElementById("source-files");

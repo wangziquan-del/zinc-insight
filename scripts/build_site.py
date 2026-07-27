@@ -37,6 +37,7 @@ KLINE_URL = "https://zhiji-ai.xyz/guan/api/kline"
 COLORS = ["#f4b942", "#3dd6b6", "#6e9fff", "#ff758f", "#a989ff", "#ff9f43"]
 INDICATORS = {
     "lme_price": "FU00016158",
+    "lme_cash_3m_spread": "ID01244861",
     "shfe_stock": "ID00188293",
     "lme_stock": "FU00016163",
     "social_stock": "ID00188329",
@@ -96,6 +97,15 @@ def display_value(value: Any) -> Any:
     if value is None:
         return ""
     return value
+
+
+def public_source_label(organization: Any, provider: Any = None) -> str:
+    text = " ".join(str(value or "").strip().lower() for value in (organization, provider))
+    if "我的钢铁" in text or "mysteel" in text:
+        return "Mysteel"
+    if "上海有色" in text or "smm" in text:
+        return "SMM"
+    return "网络"
 
 
 def extract_xy(
@@ -317,13 +327,15 @@ def fetch_series(key: str, indicator_id: str) -> tuple[list[list[Any]], dict[str
         if day and value is not None:
             points[day] = value
     series = [[day, clean_number(value)] for day, value in sorted(points.items())]
+    organization = payload.get("src_org")
+    provider = payload.get("source")
     meta = {
         "id": indicator_id,
-        "source": "直集 API",
+        "source": public_source_label(organization, provider),
         "name": payload.get("name"),
         "unit": payload.get("unit"),
         "frequency": payload.get("frequency"),
-        "organization": payload.get("src_org"),
+        "organization": organization,
         "dataLatest": payload.get("data_latest") or (series[-1][0] if series else None),
     }
     return series, meta
@@ -347,7 +359,7 @@ def fetch_api_bundle(key: str) -> tuple[dict[str, list[list[Any]]], dict[str, An
                 series[label] = []
                 meta[label] = {
                     "id": INDICATORS[label],
-                    "source": "直集 API",
+                    "source": "网络",
                     "error": type(exc).__name__,
                 }
     return series, meta
@@ -372,7 +384,7 @@ def fetch_quote(key: str) -> dict[str, Any]:
         "volume": clean_number(item.get("volume")),
         "openInterest": clean_number(item.get("open_interest")),
         "asOf": (str(item.get("date") or "") + " " + str(item.get("time") or "")).strip(),
-        "source": "直集 API 实时行情",
+        "source": "网络实时行情",
     }
 
 
@@ -501,6 +513,9 @@ def read_excel_sources() -> tuple[dict[str, Any], list[dict[str, Any]]]:
         "premium_shanghai": extract_xy(ingot_values["升贴水数据"], 11, 12),
         "premium_guangdong": extract_xy(ingot_values["升贴水数据"], 11, 13),
         "premium_tianjin": extract_xy(ingot_values["升贴水数据"], 11, 14),
+        "lme_cash_3m_spread": extract_xy(
+            ingot_values["升贴水数据"], 28, 29, start="2022-01-01"
+        ),
         "tc_domestic": extract_xy(ingot_values["TC"], 1, 2),
         "tc_import": extract_xy(ingot_values["TC"], 1, 3),
         "smelting_profit_domestic": extract_xy(ingot_values["利润"], 16, 17),
@@ -749,7 +764,7 @@ def extend_refined_balance(
                 "bondedStock": None,
                 "bondedChange": None,
                 "apparentConsumption": clean_number(apparent),
-                "basis": "直集 API 续接；净进口=精炼锌进口-出口，表消未含锌合金净进口与保税库存变化",
+                "basis": "网络数据续接；净进口=精炼锌进口-出口，表消未含锌合金净进口与保税库存变化",
             }
         )
         if current_stock is not None:
@@ -787,7 +802,7 @@ def extend_mine_balance(
                 "smelterUse": clean_number(smelter_use),
                 "balance": clean_number(balance),
                 "cumulative": None,
-                "basis": "直集/API与锭篇进口续接；进口矿按45%折金属量，矿耗按精炼锌产量×0.88估算",
+                "basis": "网络数据与锭篇进口续接；进口矿按45%折金属量，矿耗按精炼锌产量×0.88估算",
             }
         )
     return output
@@ -818,6 +833,7 @@ def build_data() -> dict[str, Any]:
     series = {
         "price": local["price"],
         "lme_price": api_series.get("lme_price", []),
+        "lme_cash_3m_spread": api_series.get("lme_cash_3m_spread") or local["lme_cash_3m_spread"],
         "shfe_stock": api_series.get("shfe_stock", []),
         "lme_stock": api_series.get("lme_stock", []),
         "social_stock": api_series.get("social_stock", []),
@@ -847,12 +863,12 @@ def build_data() -> dict[str, Any]:
     try:
         quote = fetch_quote(key)
     except Exception as exc:
-        warnings.append({"source": "直集实时行情", "issue": type(exc).__name__})
+        warnings.append({"source": "网络实时行情", "issue": type(exc).__name__})
         quote = {}
     try:
         kline_rows = fetch_kline(key)
     except Exception as exc:
-        warnings.append({"source": "直集日K", "issue": type(exc).__name__})
+        warnings.append({"source": "网络日K", "issue": type(exc).__name__})
         kline_rows = []
     if not kline_rows:
         kline_rows = fallback_kline(series["price"])
@@ -865,7 +881,7 @@ def build_data() -> dict[str, Any]:
             "last": kline["latest"],
             "changePct": None,
             "asOf": kline_rows[-1]["time"],
-            "source": "直集日K / Excel 回退",
+            "source": "网络日K / Excel 回退",
         }
 
     refined_balance = extend_refined_balance(local["refined_balance"], api_series)
@@ -873,6 +889,7 @@ def build_data() -> dict[str, Any]:
     latest = {
         "shfe": [quote.get("asOf"), quote.get("last")],
         "lme": series_latest(series["lme_price"]),
+        "lmeCash3mSpread": series_latest(series["lme_cash_3m_spread"]),
         "shfeStock": series_latest(series["shfe_stock"]),
         "lmeStock": series_latest(series["lme_stock"]),
         "socialStock": series_latest(series["social_stock"]),
@@ -897,11 +914,12 @@ def build_data() -> dict[str, Any]:
         "shfePrice": seasonal_chart(series["price"], start_year=2022),
         "monthSpread": seasonal_chart(local["month_spread"]),
         "lmePrice": seasonal_chart(series["lme_price"], start_year=2022),
+        "lmeCash3mSpread": seasonal_chart(series["lme_cash_3m_spread"], start_year=2022),
         "globalExchangeStock": seasonal_chart(global_exchange_stock, start_year=2022),
         "refinedTradeProfit": continuous_chart(
             {
-                "锌锭进口盈亏（含税）": local["ingot_import_profit"],
-                "锌出口利润": local["ingot_export_profit"],
+                "Mysteel｜锌锭进口盈亏（含税）": local["ingot_import_profit"],
+                "网络｜锌出口利润": local["ingot_export_profit"],
             },
             limit=None,
         ),
@@ -1038,7 +1056,7 @@ def build_data() -> dict[str, Any]:
             "title": "锌语新愿",
             "subtitle": "全球锌产业监测台",
             "builtAt": datetime.now().astimezone().isoformat(timespec="seconds"),
-            "dataPriority": "直集 API > 最新 Excel 缓存值 > StoneX 2026年5月预测",
+            "dataPriority": "网络数据 > 最新 Excel 缓存值 > StoneX 2026年5月预测",
             "apiConnected": bool(key and any(api_series.values())),
             "warnings": warnings,
             "sourceFiles": [
@@ -1058,7 +1076,7 @@ def build_data() -> dict[str, Any]:
             "methodology": [
                 "矿端：国内锌精矿产量 + 进口矿实物量×45%，对比按精炼锌产量折算的矿耗。",
                 "锭端：精炼锌产量 + 净进口构成供应；表观消费为扣除社会/保税库存变化后的残差。",
-                "2026续接段优先使用直集，缺少锌合金净进口或保税库存时明确标注，不伪造补数。",
+                "2026续接段优先使用网络数据，缺少锌合金净进口或保税库存时明确标注，不伪造补数。",
             ],
         },
         "stonex": stonex,
@@ -1125,7 +1143,7 @@ def write_data(data: dict[str, Any]) -> None:
         "lme": {
             "last": data["latest"]["lme"][1],
             "date": data["latest"]["lme"][0],
-            "source": "直集 API / 日度结算",
+            "source": "网络 / 日度结算",
         },
     }
     (ROOT / "quotes.json").write_text(

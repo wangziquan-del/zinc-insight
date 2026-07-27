@@ -1,4 +1,4 @@
-"""Refresh deployed data from Zhiji without local Excel files."""
+"""Refresh deployed network data without local Excel files."""
 import json
 import sys
 from datetime import datetime
@@ -17,33 +17,33 @@ def main():
         raise RuntimeError("ZHIJI_API_KEY is not configured")
     series, metadata = z.fetch_api_bundle(key)
     if not any(series.values()):
-        raise RuntimeError("Zhiji returned no usable series")
+        raise RuntimeError("Network source returned no usable series")
     now = datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(timespec="seconds")
     meta = data["meta"]
     meta.setdefault("excelBuiltAt", meta.get("builtAt"))
     meta.update(builtAt=now, liveRefreshedAt=now, apiConnected=True,
-                refreshMode="GitHub Actions / Zhiji API")
+                refreshMode="GitHub Actions / 网络数据")
     data["sourceRegistry"].update(metadata)
     try:
         quote = z.fetch_quote(key)
         if quote.get("last") is not None:
             data["quote"] = quote
     except Exception as exc:
-        meta["warnings"].append({"source": "直集实时行情刷新", "issue": type(exc).__name__})
+        meta["warnings"].append({"source": "网络实时行情刷新", "issue": type(exc).__name__})
     try:
         rows = z.fetch_kline(key, limit=1800)
         if rows:
             data["kline"] = z.enrich_kline(rows[-360:])
     except Exception as exc:
         rows = []
-        meta["warnings"].append({"source": "直集日K刷新", "issue": type(exc).__name__})
+        meta["warnings"].append({"source": "网络日K刷新", "issue": type(exc).__name__})
 
     latest = data["latest"]
     quote = data.get("quote", {})
     if quote.get("last") is not None:
         latest["shfe"] = [quote.get("asOf"), quote["last"]]
     latest_map = {
-        "lme": "lme_price", "shfeStock": "shfe_stock", "lmeStock": "lme_stock",
+        "lme": "lme_price", "lmeCash3mSpread": "lme_cash_3m_spread", "shfeStock": "shfe_stock", "lmeStock": "lme_stock",
         "socialStock": "social_stock", "concentratePortStock": "concentrate_port_stock",
         "tcImport": "tc_import", "tcNorth": "tc_north", "tcSouth": "tc_south",
         "refinedOutput": "refined_output", "concentrateOutput": "concentrate_output",
@@ -61,7 +61,7 @@ def main():
             [[x["time"][:10], x["c"]] for x in rows], start_year=2022
         )
     seasonal = {
-        "lmePrice": "lme_price", "refinedOutput": "refined_output",
+        "lmePrice": "lme_price", "lmeCash3mSpread": "lme_cash_3m_spread", "refinedOutput": "refined_output",
         "concentrateOutput": "concentrate_output", "shfeStock": "shfe_stock",
         "lmeStock": "lme_stock", "socialStock": "social_stock",
         "concentratePortStock": "concentrate_port_stock", "concentrateImport": "concentrate_import",
@@ -73,7 +73,7 @@ def main():
     for chart, source in seasonal.items():
         if series.get(source):
             charts[chart] = z.seasonal_chart(
-                series[source], start_year=2022 if chart == "lmePrice" else None
+                series[source], start_year=2022 if chart in ("lmePrice", "lmeCash3mSpread") else None
             )
     if series.get("shfe_stock") and series.get("lme_stock"):
         global_exchange_stock = z.asof_sum_series(
