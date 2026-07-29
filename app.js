@@ -9,6 +9,7 @@
   const sections = [...document.querySelectorAll(".section")];
   const chapterRail = document.querySelector(".chapter-rail");
   const PALETTES = {
+    "cathedral": { text: "#4a4232", grid: "#ddd2b8", font: "Noto Serif SC, Microsoft YaHei, serif" },
     "dark-journal": { text: "#c8d6e5", grid: "#1d2d3a", font: "Inter, Microsoft YaHei, sans-serif" },
     "light-journal": { text: "#3f4b55", grid: "#d9d2c4", font: "Inter, Microsoft YaHei, sans-serif" },
     "market-surge": { text: "#87a3b2", grid: "#172239", font: "Consolas, Microsoft YaHei, monospace" },
@@ -82,15 +83,14 @@
   }
 
   function updateThemeClock(now = new Date()) {
-    const dark = now.getHours() < 6 || now.getHours() >= 18;
-    const name = dark ? "dark-journal" : "light-journal";
-    if (!document.body.dataset.marketMode) applyTheme(name);
+    // 圣堂风为恒定主题（用户指定浅色），不再随昼夜切换；行情 ±3% 极端模式仍可临时覆盖
+    if (!document.body.dataset.marketMode) applyTheme("cathedral");
     const label = document.getElementById("theme-mode-label");
     const hero = document.getElementById("hero-theme");
     const clock = document.getElementById("theme-clock");
-    if (label) label.textContent = dark ? "NIGHT JOURNAL" : "DAY JOURNAL";
-    if (hero) hero.textContent = dark ? "NIGHT / AUTO" : "DAY / AUTO";
-    if (clock) clock.textContent = `${now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 06:00 / 18:00`;
+    if (label) label.textContent = "CATHEDRAL LIGHT";
+    if (hero) hero.textContent = "CATHEDRAL · 圣堂";
+    if (clock) clock.textContent = `${now.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })} · 圣堂 · 恒定浅色`;
   }
 
   function updateMarketMode(value) {
