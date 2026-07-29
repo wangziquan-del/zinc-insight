@@ -919,18 +919,31 @@ def build_data() -> dict[str, Any]:
 
     refined_balance = extend_refined_balance(local["refined_balance"], api_series)
     mine_balance = extend_mine_balance(local["mine_balance"], api_series, series["concentrate_import"])
-    # 锌锭出口利润：旧 Excel 序列停更于 2026-01，改为自算（LME×在岸汇率−上海1#锌−校准费用）
+    # 锌锭出口利润：优先「源点补充」表（SMM 口径，若 10 天内有更新）；
+    # 表停更时自算（LME×在岸汇率−上海1#锌−按旧序列校准的常数），再退化为旧序列+告警
     export_profit_calc, export_fee = compute_export_profit(
         series["lme_price"], api_series.get("fx_usdcny", []),
         api_series.get("shanghai_spot", []), local["ingot_export_profit"],
     )
-    if export_profit_calc:
+    legacy_latest_day = None
+    if local["ingot_export_profit"]:
+        try:
+            legacy_latest_day = datetime.fromisoformat(str(local["ingot_export_profit"][-1][0])).date()
+        except ValueError:
+            legacy_latest_day = None
+    legacy_fresh = bool(
+        legacy_latest_day and (datetime.now().date() - legacy_latest_day).days <= 10
+    )
+    if legacy_fresh:
+        export_profit = local["ingot_export_profit"]
+        export_profit_label = "网络｜锌锭出口利润（源点补充表，日更）"
+    elif export_profit_calc:
         export_profit = export_profit_calc
         export_profit_label = f"自算｜锌锭出口利润（LME×在岸汇率−上海1#锌，常数{export_fee:+.0f}元/吨按旧序列校准）"
     else:
         export_profit = local["ingot_export_profit"]
-        export_profit_label = "网络｜锌出口利润（旧序列，2026-01 停更）"
-        warnings.append({"source": "锌锭出口利润", "issue": "自算组件缺失，回退旧 Excel 序列"})
+        export_profit_label = "网络｜锌出口利润（旧序列，停更）"
+        warnings.append({"source": "锌锭出口利润", "issue": "源点表停更且自算组件缺失，数据可能过期"})
     # 进口盈亏：优先 Mysteel 日度指标（含税），Excel 序列回退
     import_profit = api_series.get("ingot_import_profit") or local["ingot_import_profit"]
     latest = {

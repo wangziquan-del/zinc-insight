@@ -1,21 +1,21 @@
 {
-  "updated_at": "2026-07-29T14:32:06+08:00",
+  "updated_at": "2026-07-29T14:36:07+08:00",
   "zn": {
     "symbol": "zn2609",
     "name": "沪锌",
-    "last": 24775.0,
-    "changePct": 0.285,
+    "last": 24790.0,
+    "changePct": 0.344,
     "open": null,
     "high": null,
     "low": null,
-    "volume": 102786.0,
-    "openInterest": 106695.0,
-    "asOf": "14:31:33.000",
+    "volume": 103277.0,
+    "openInterest": 106698.0,
+    "asOf": "14:35:28.000",
     "source": "网络实时行情"
   },
   "lme": {
-    "last": null,
-    "date": null,
+    "last": 3576.0,
+    "date": "2026-07-28",
     "source": "网络 / 日度结算"
   }
 }
