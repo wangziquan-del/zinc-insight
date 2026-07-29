@@ -161,7 +161,24 @@
 
   function continuous(id, chart, options = {}) {
     return makeChart(id, "line", chart, merge({
-      elements: { point: { radius: 0 }, line: { tension: .12 } }
+      elements: { point: { radius: 0 }, line: { tension: .12 } },
+      layout: { padding: { right: 26 } },
+      scales: {
+        x: {
+          ticks: {
+            // 自定义抽样：保证首尾日期都显示（autoSkip 会把最新日期挤掉）
+            autoSkip: false,
+            maxRotation: 45,
+            callback: function (value) {
+              const labels = this.chart.data.labels;
+              const n = labels.length;
+              if (!n) return "";
+              const step = Math.ceil((n - 1) / 8);
+              return (value === n - 1 || value % step === 0) ? this.getLabelForValue(value) : "";
+            }
+          }
+        }
+      }
     }, options));
   }
 

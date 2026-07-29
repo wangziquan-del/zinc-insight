@@ -2,7 +2,7 @@
   "meta": {
     "title": "锌语新愿",
     "subtitle": "全球锌产业监测台",
-    "builtAt": "2026-07-29T14:39:29+08:00",
+    "builtAt": "2026-07-29T14:44:51+08:00",
     "dataPriority": "网络数据 > 最新 Excel 缓存值 > StoneX 2026年5月预测",
     "apiConnected": true,
     "warnings": [],
@@ -33,18 +33,18 @@
     "symbol": "zn2609",
     "name": "沪锌",
     "last": 24785.0,
-    "changePct": 0.321,
+    "changePct": 0.318,
     "open": null,
     "high": null,
     "low": null,
-    "volume": 104097.0,
-    "openInterest": 106506.0,
-    "asOf": "14:38:49.000",
+    "volume": 105056.0,
+    "openInterest": 106159.0,
+    "asOf": "14:44:19.000",
     "source": "网络实时行情"
   },
   "latest": {
     "shfe": [
-      "14:38:49.000",
+      "14:44:19.000",
       24785.0
     ],
     "lme": [
@@ -42734,6 +42734,15 @@
     }
   ],
   "sourceRegistry": {
+    "concentrate_port_stock": {
+      "id": "ID00188330",
+      "source": "Mysteel",
+      "name": "锌精矿：港口库存：中国（周）",
+      "unit": "万吨",
+      "frequency": "周",
+      "organization": "我的钢铁网",
+      "dataLatest": "2026-07-24"
+    },
     "social_stock": {
       "id": "ID00188329",
       "source": "Mysteel",
@@ -42743,14 +42752,32 @@
       "organization": "我的钢铁网",
       "dataLatest": "2026-07-27"
     },
-    "concentrate_port_stock": {
-      "id": "ID00188330",
+    "lme_price": {
+      "id": "FU00016158",
       "source": "Mysteel",
-      "name": "锌精矿：港口库存：中国（周）",
-      "unit": "万吨",
-      "frequency": "周",
+      "name": "LME：锌：3个月合约：结算价（日）",
+      "unit": "美元/吨",
+      "frequency": "日",
+      "organization": "伦敦金属交易所",
+      "dataLatest": "2026-07-28"
+    },
+    "tc_north": {
+      "id": "ID00408211",
+      "source": "Mysteel",
+      "name": "锌精矿：50%Zn：加工费均价：北方大区（日）",
+      "unit": "元/金属吨",
+      "frequency": "日",
       "organization": "我的钢铁网",
-      "dataLatest": "2026-07-24"
+      "dataLatest": "2026-07-29"
+    },
+    "lme_cash_3m_spread": {
+      "id": "ID01244861",
+      "source": "Mysteel",
+      "name": "LME：锌：CASH-3M合约：结算价差（日）",
+      "unit": "美元/吨",
+      "frequency": "日",
+      "organization": "伦敦金属交易所",
+      "dataLatest": "2026-07-28"
     },
     "refined_output": {
       "id": "ID01510883",
@@ -42770,24 +42797,6 @@
       "organization": "我的钢铁网",
       "dataLatest": "2026-07-29"
     },
-    "tc_import": {
-      "id": "ID00408213",
-      "source": "Mysteel",
-      "name": "锌精矿：进口：50%Zn：加工费均价（日）",
-      "unit": "美元/干吨",
-      "frequency": "日",
-      "organization": "我的钢铁网",
-      "dataLatest": "2026-07-29"
-    },
-    "lme_cash_3m_spread": {
-      "id": "ID01244861",
-      "source": "Mysteel",
-      "name": "LME：锌：CASH-3M合约：结算价差（日）",
-      "unit": "美元/吨",
-      "frequency": "日",
-      "organization": "伦敦金属交易所",
-      "dataLatest": "2026-07-28"
-    },
     "lme_stock": {
       "id": "FU00016163",
       "source": "Mysteel",
@@ -42797,23 +42806,14 @@
       "organization": "伦敦金属交易所",
       "dataLatest": "2026-07-28"
     },
-    "tc_north": {
-      "id": "ID00408211",
+    "tc_import": {
+      "id": "ID00408213",
       "source": "Mysteel",
-      "name": "锌精矿：50%Zn：加工费均价：北方大区（日）",
-      "unit": "元/金属吨",
+      "name": "锌精矿：进口：50%Zn：加工费均价（日）",
+      "unit": "美元/干吨",
       "frequency": "日",
       "organization": "我的钢铁网",
       "dataLatest": "2026-07-29"
-    },
-    "shfe_stock": {
-      "id": "ID00188293",
-      "source": "Mysteel",
-      "name": "SHFE：锌：期货库存（日）",
-      "unit": "吨",
-      "frequency": "日",
-      "organization": "上海期货交易所",
-      "dataLatest": "2026-07-28"
     },
     "concentrate_output": {
       "id": "ID01001563",
@@ -42823,6 +42823,24 @@
       "frequency": "月",
       "organization": "我的钢铁网",
       "dataLatest": "2026-06-30"
+    },
+    "zinc_oxide_rate": {
+      "id": "ID01002075",
+      "source": "Mysteel",
+      "name": "氧化锌企业：开工率：中国（月）",
+      "unit": "百分比",
+      "frequency": "月",
+      "organization": "我的钢铁网",
+      "dataLatest": "2026-06-30"
+    },
+    "shfe_stock": {
+      "id": "ID00188293",
+      "source": "Mysteel",
+      "name": "SHFE：锌：期货库存（日）",
+      "unit": "吨",
+      "frequency": "日",
+      "organization": "上海期货交易所",
+      "dataLatest": "2026-07-28"
     },
     "die_cast_rate": {
       "id": "ID01002076",
@@ -42842,6 +42860,15 @@
       "organization": "我的钢铁网",
       "dataLatest": "2026-07-24"
     },
+    "shanghai_premium": {
+      "id": "ID02038785",
+      "source": "Mysteel",
+      "name": "锌锭：0#：Zn≥99.995%：升贴水：上海（日）",
+      "unit": "元/吨",
+      "frequency": "日",
+      "organization": "我的钢铁网",
+      "dataLatest": "2026-07-29"
+    },
     "concentrate_import": {
       "id": "a10001843",
       "source": "SMM",
@@ -42860,24 +42887,6 @@
       "organization": "中国海关总署",
       "dataLatest": "2026-06-30"
     },
-    "shanghai_premium": {
-      "id": "ID02038785",
-      "source": "Mysteel",
-      "name": "锌锭：0#：Zn≥99.995%：升贴水：上海（日）",
-      "unit": "元/吨",
-      "frequency": "日",
-      "organization": "我的钢铁网",
-      "dataLatest": "2026-07-29"
-    },
-    "galvanized_mill_inventory": {
-      "id": "ID00366837",
-      "source": "Mysteel",
-      "name": "镀锌板卷：钢铁企业：厂内库存：中国（周）",
-      "unit": "万吨",
-      "frequency": "周",
-      "organization": "我的钢铁网",
-      "dataLatest": "2026-07-24"
-    },
     "galvanized_inventory": {
       "id": "ID00366838",
       "source": "Mysteel",
@@ -42887,14 +42896,14 @@
       "organization": "我的钢铁网",
       "dataLatest": "2026-07-24"
     },
-    "zinc_oxide_rate": {
-      "id": "ID01002075",
+    "galvanized_mill_inventory": {
+      "id": "ID00366837",
       "source": "Mysteel",
-      "name": "氧化锌企业：开工率：中国（月）",
-      "unit": "百分比",
-      "frequency": "月",
+      "name": "镀锌板卷：钢铁企业：厂内库存：中国（周）",
+      "unit": "万吨",
+      "frequency": "周",
       "organization": "我的钢铁网",
-      "dataLatest": "2026-06-30"
+      "dataLatest": "2026-07-24"
     },
     "refined_export": {
       "id": "CM0000138627",
@@ -42922,15 +42931,6 @@
       "frequency": "日",
       "organization": "中国银行",
       "dataLatest": "2026-07-29"
-    },
-    "lme_price": {
-      "id": "FU00016158",
-      "source": "Mysteel",
-      "name": "LME：锌：3个月合约：结算价（日）",
-      "unit": "美元/吨",
-      "frequency": "日",
-      "organization": "伦敦金属交易所",
-      "dataLatest": "2026-07-28"
     },
     "shanghai_spot": {
       "id": "ID00302653",
