@@ -58,6 +58,7 @@ INDICATORS = {
     "galvanized_mill_inventory": "ID00366837",
     "fx_usdcny": "CM00891264",
     "shanghai_spot": "ID00302653",
+    "ingot_import_profit": "ID01030236",
 }
 
 
@@ -930,6 +931,8 @@ def build_data() -> dict[str, Any]:
         export_profit = local["ingot_export_profit"]
         export_profit_label = "网络｜锌出口利润（旧序列，2026-01 停更）"
         warnings.append({"source": "锌锭出口利润", "issue": "自算组件缺失，回退旧 Excel 序列"})
+    # 进口盈亏：优先 Mysteel 日度指标（含税），Excel 序列回退
+    import_profit = api_series.get("ingot_import_profit") or local["ingot_import_profit"]
     latest = {
         "shfe": [quote.get("asOf"), quote.get("last")],
         "lme": series_latest(series["lme_price"]),
@@ -949,7 +952,7 @@ def build_data() -> dict[str, Any]:
         "shanghaiPremium": series_latest(series["shanghai_premium"]),
         "oreImport": series_latest(series["concentrate_import"]),
         "refinedNetImport": series_latest(refined_net_import),
-        "ingotImportProfit": series_latest(local["ingot_import_profit"]),
+        "ingotImportProfit": series_latest(import_profit),
         "ingotExportProfit": series_latest(export_profit),
         "monthSpread": series_latest(local["month_spread"]),
     }
@@ -962,7 +965,7 @@ def build_data() -> dict[str, Any]:
         "globalExchangeStock": seasonal_chart(global_exchange_stock, start_year=2022),
         "refinedTradeProfit": continuous_chart(
             {
-                "Mysteel｜锌锭进口盈亏（含税）": local["ingot_import_profit"],
+                "Mysteel｜锌锭进口盈亏（含税，日更）": import_profit,
                 export_profit_label: export_profit,
             },
             limit=None,
