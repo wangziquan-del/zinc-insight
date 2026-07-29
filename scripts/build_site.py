@@ -56,6 +56,8 @@ INDICATORS = {
     "refined_export": "CM0000138627",
     "galvanized_inventory": "ID00366838",
     "galvanized_mill_inventory": "ID00366837",
+    "fx_usdcny": "CM00891264",
+    "shanghai_spot": "ID00302653",
 }
 
 
@@ -363,6 +365,36 @@ def fetch_api_bundle(key: str) -> tuple[dict[str, list[list[Any]]], dict[str, An
                     "error": type(exc).__name__,
                 }
     return series, meta
+
+
+def compute_export_profit(
+    lme_price: list[list[Any]],
+    fx: list[list[Any]],
+    spot: list[list[Any]],
+    legacy: list[list[Any]],
+) -> tuple[list[list[Any]], float | None]:
+    """锌锭出口利润自算：LME($/t) × 在岸汇率 − 上海1#锌现货 − 出口综合费用。
+    费用常数按旧 Excel 序列重叠期均值校准（old = lme×fx − spot − fee → fee 均值）。
+    返回 (series, fee)；组件缺失时返回 ([], None)，由调用方回退旧序列。"""
+    if not lme_price or not fx or not spot:
+        return [], None
+    lme_map = {day: value for day, value in lme_price if number(value) is not None}
+    fx_map = {day: value for day, value in fx if number(value) is not None}
+    spot_map = {day: value for day, value in spot if number(value) is not None}
+    legacy_map = {day: number(value) for day, value in legacy if number(value) is not None}
+    common = sorted(set(lme_map) & set(fx_map) & set(spot_map))
+    if not common:
+        return [], None
+    fees = [
+        lme_map[d] * fx_map[d] - spot_map[d] - legacy_map[d]
+        for d in common
+        if d in legacy_map and legacy_map[d] is not None
+    ]
+    fee = sum(fees) / len(fees) if fees else 500.0
+    series = [
+        [d, round(lme_map[d] * fx_map[d] - spot_map[d] - fee, 1)] for d in common
+    ]
+    return series, fee
 
 
 def fetch_quote(key: str) -> dict[str, Any]:
@@ -886,6 +918,18 @@ def build_data() -> dict[str, Any]:
 
     refined_balance = extend_refined_balance(local["refined_balance"], api_series)
     mine_balance = extend_mine_balance(local["mine_balance"], api_series, series["concentrate_import"])
+    # 锌锭出口利润：旧 Excel 序列停更于 2026-01，改为自算（LME×在岸汇率−上海1#锌−校准费用）
+    export_profit_calc, export_fee = compute_export_profit(
+        series["lme_price"], api_series.get("fx_usdcny", []),
+        api_series.get("shanghai_spot", []), local["ingot_export_profit"],
+    )
+    if export_profit_calc:
+        export_profit = export_profit_calc
+        export_profit_label = f"自算｜锌锭出口利润（LME×在岸汇率−上海1#锌，常数{export_fee:+.0f}元/吨按旧序列校准）"
+    else:
+        export_profit = local["ingot_export_profit"]
+        export_profit_label = "网络｜锌出口利润（旧序列，2026-01 停更）"
+        warnings.append({"source": "锌锭出口利润", "issue": "自算组件缺失，回退旧 Excel 序列"})
     latest = {
         "shfe": [quote.get("asOf"), quote.get("last")],
         "lme": series_latest(series["lme_price"]),
@@ -906,7 +950,7 @@ def build_data() -> dict[str, Any]:
         "oreImport": series_latest(series["concentrate_import"]),
         "refinedNetImport": series_latest(refined_net_import),
         "ingotImportProfit": series_latest(local["ingot_import_profit"]),
-        "ingotExportProfit": series_latest(local["ingot_export_profit"]),
+        "ingotExportProfit": series_latest(export_profit),
         "monthSpread": series_latest(local["month_spread"]),
     }
 
@@ -919,7 +963,7 @@ def build_data() -> dict[str, Any]:
         "refinedTradeProfit": continuous_chart(
             {
                 "Mysteel｜锌锭进口盈亏（含税）": local["ingot_import_profit"],
-                "网络｜锌出口利润": local["ingot_export_profit"],
+                export_profit_label: export_profit,
             },
             limit=None,
         ),
