@@ -936,13 +936,13 @@ def build_data() -> dict[str, Any]:
     )
     if legacy_fresh:
         export_profit = local["ingot_export_profit"]
-        export_profit_label = "网络｜锌锭出口利润（源点补充表，日更）"
+        export_profit_label = "锌锭出口利润（源点补充）"
     elif export_profit_calc:
         export_profit = export_profit_calc
-        export_profit_label = f"自算｜锌锭出口利润（LME×在岸汇率−上海1#锌，常数{export_fee:+.0f}元/吨按旧序列校准）"
+        export_profit_label = "锌锭出口利润（自算）"
     else:
         export_profit = local["ingot_export_profit"]
-        export_profit_label = "网络｜锌出口利润（旧序列，停更）"
+        export_profit_label = "锌出口利润（旧序列，停更）"
         warnings.append({"source": "锌锭出口利润", "issue": "源点表停更且自算组件缺失，数据可能过期"})
     # 进口盈亏：优先 Mysteel 日度指标（含税），Excel 序列回退
     import_profit = api_series.get("ingot_import_profit") or local["ingot_import_profit"]
@@ -978,7 +978,7 @@ def build_data() -> dict[str, Any]:
         "globalExchangeStock": seasonal_chart(global_exchange_stock, start_year=2022),
         "refinedTradeProfit": continuous_chart(
             {
-                "Mysteel｜锌锭进口盈亏（含税，日更）": import_profit,
+                "Mysteel｜锌锭进口盈亏（含税）": import_profit,
                 export_profit_label: export_profit,
             },
             limit=None,
